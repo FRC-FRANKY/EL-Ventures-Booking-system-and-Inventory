@@ -279,9 +279,53 @@
   box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.2);
 }
 
+/* Accounting & Inventory login */
+.login-page--accounting {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #d1fae5 100%);
+  position: relative;
+}
+
+.login-card--max-md {
+  max-width: 28rem;
+}
+
+.login-card__icon-wrap--purple-gradient {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.login-btn--purple-gradient {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.login-btn--purple-gradient:hover {
+  background: linear-gradient(135deg, #047857 0%, #03634d 100%);
+}
+
+.login-btn--purple-gradient:focus {
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.4);
+}
+
+.login-page--accounting .login-input:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+}
+
+.login-page--accounting .login-demo {
+  background: #f1f5f9;
+}
+
+.login-page--accounting .login-demo__title {
+  color: #475569;
+}
+
+.login-page--accounting .login-demo__line {
+  color: #64748b;
+}
+
 @media (min-width: 768px) {
   .login-page--receptionist,
-  .login-page--hr {
+  .login-page--hr,
+  .login-page--accounting {
     padding: 3rem 2rem;
   }
 
