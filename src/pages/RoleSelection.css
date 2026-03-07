@@ -1,0 +1,134 @@
+.role-selection {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f0f8 0%, #e8f4fc 50%, #f0f5f8 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  gap: 3rem;
+}
+
+.role-selection__header {
+  text-align: center;
+}
+
+.role-selection__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.role-selection__subtitle {
+  font-size: 1rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.role-selection__cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  max-width: 960px;
+}
+
+.role-selection__card-wrapper {
+  flex: 1 1 260px;
+  max-width: 320px;
+  min-width: 240px;
+}
+
+.role-card {
+  width: 100%;
+  background: #f7fafc;
+  border: none;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  font-family: inherit;
+}
+
+.role-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.role-card:focus {
+  outline: 2px solid #4299e1;
+  outline-offset: 2px;
+}
+
+.role-card__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.role-card__icon svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.role-card__icon--purple {
+  background: #805ad5;
+}
+
+.role-card__icon--blue {
+  background: #3182ce;
+}
+
+.role-card__icon--green {
+  background: #38a169;
+}
+
+.role-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.role-card__description {
+  font-size: 0.875rem;
+  color: #718096;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.role-selection__instruction {
+  font-size: 0.875rem;
+  color: #718096;
+  text-align: center;
+  max-width: 400px;
+}
+
+@media (min-width: 768px) {
+  .role-selection {
+    padding: 3rem 2rem;
+    gap: 3.5rem;
+  }
+
+  .role-selection__cards {
+    gap: 2rem;
+  }
+
+  .role-card {
+    padding: 2.25rem 1.75rem;
+  }
+}
