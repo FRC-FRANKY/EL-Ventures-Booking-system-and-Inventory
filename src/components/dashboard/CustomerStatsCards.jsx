@@ -3,8 +3,8 @@ import { Users } from 'lucide-react'
 const stats = [
   { title: 'Total Customers', value: '8', icon: Users },
   { title: 'VIP Customers', value: '2', icon: null },
-  { title: 'Total Revenue', value: '$9290.00', icon: null },
-  { title: 'Avg. per Customer', value: '$1161.25', icon: null },
+  { title: 'Total Revenue', value: 'PHP 9,290.00', icon: null },
+  { title: 'Avg. per Customer', value: 'PHP 1,161.25', icon: null },
 ]
 
 export default function CustomerStatsCards() {

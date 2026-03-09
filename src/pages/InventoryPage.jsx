@@ -123,7 +123,7 @@ function AddItemModal({ onClose, onAdd }) {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price ($)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price (PHP)</label>
             <input
               type="number"
               min="0"
@@ -251,7 +251,7 @@ function EditItemModal({ item, onClose, onSave }) {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price ($)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price (PHP)</label>
             <input type="number" min="0" step="0.01" value={form.unitPrice} onChange={(e) => setForm((p) => ({ ...p, unitPrice: Number(e.target.value) || 0 }))} className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-purple-500" />
           </div>
           <div>
@@ -342,8 +342,8 @@ export default function InventoryPage() {
             <p className="text-2xl font-bold text-gray-900 mt-1">{stats.lowStockCount}</p>
           </div>
           <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-l-green-500">
-            <p className="text-sm font-medium text-gray-500">Total Value</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">${stats.totalValue.toFixed(2)}</p>
+            <p className="text-sm font-medium text-gray-500">Total Value (PHP)</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">PHP {stats.totalValue.toFixed(2)}</p>
           </div>
         </div>
 
@@ -436,8 +436,8 @@ export default function InventoryPage() {
                         {item.quantity} {isLow && '(Low)'}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-700">{item.unit}</td>
-                      <td className="py-3 px-4 text-sm text-gray-700">${item.unitPrice.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-sm font-medium text-gray-900">${totalValue.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-sm text-gray-700">PHP {item.unitPrice.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-sm font-medium text-gray-900">PHP {totalValue.toFixed(2)}</td>
                       <td className="py-3 px-4 text-sm text-gray-700">{item.supplier}</td>
                       <td className="py-3 px-4 text-sm text-gray-700">{item.lastRestocked}</td>
                       <td className="py-3 px-4">

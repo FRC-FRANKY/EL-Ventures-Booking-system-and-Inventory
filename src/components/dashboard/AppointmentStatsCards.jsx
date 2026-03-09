@@ -21,7 +21,7 @@ const stats = [
   },
   {
     title: 'Total Revenue',
-    value: '$45',
+    value: 'PHP 45',
     icon: Users,
     iconBg: 'bg-purple-500',
   },

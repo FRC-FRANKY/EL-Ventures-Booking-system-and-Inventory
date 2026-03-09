@@ -175,13 +175,37 @@
 
 .login-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  padding: 0.75rem 3rem 0.75rem 2.75rem;
   font-size: 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   background: #fff;
   font-family: inherit;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-input__toggle {
+  position: absolute;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: transparent;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.login-input__toggle:hover {
+  color: #4a5568;
+}
+
+.login-input__toggle-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .login-input::placeholder {

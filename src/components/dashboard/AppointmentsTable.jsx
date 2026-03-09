@@ -9,7 +9,7 @@ const appointments = [
     stylist: 'Emma Williams',
     dateTime: 'Mar 5, 2026 – 9:00 AM',
     duration: '60 min',
-    price: '$85',
+    price: 'PHP 85',
     status: 'Confirmed',
   },
   {
@@ -20,7 +20,7 @@ const appointments = [
     stylist: 'Lisa Cruz',
     dateTime: 'Mar 5, 2026 – 10:30 AM',
     duration: '120 min',
-    price: '$180',
+    price: 'PHP 180',
     status: 'Confirmed',
   },
   {
@@ -31,7 +31,7 @@ const appointments = [
     stylist: 'Ana Reyes',
     dateTime: 'Mar 5, 2026 – 2:00 PM',
     duration: '90 min',
-    price: '$75',
+    price: 'PHP 75',
     status: 'Pending',
   },
   {
@@ -42,7 +42,7 @@ const appointments = [
     stylist: 'Maria Santos',
     dateTime: 'Mar 4, 2026 – 11:00 AM',
     duration: '45 min',
-    price: '$45',
+    price: 'PHP 45',
     status: 'Completed',
   },
 ]

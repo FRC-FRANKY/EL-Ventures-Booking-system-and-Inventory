@@ -2,8 +2,8 @@ import { DollarSign } from 'lucide-react'
 import VIPCustomerCard from './VIPCustomerCard'
 
 const vipCustomers = [
-  { name: 'Sophie Brown', phone: '(555) 789-0123', totalSpent: '$3200.00', visits: 18 },
-  { name: 'Emily Davis', phone: '(555) 345-6789', totalSpent: '$2100.00', visits: 15 },
+  { name: 'Sophie Brown', phone: '(555) 789-0123', totalSpent: 'PHP 3,200.00', visits: 18 },
+  { name: 'Emily Davis', phone: '(555) 345-6789', totalSpent: 'PHP 2,100.00', visits: 15 },
 ]
 
 export default function VIPCustomersSection() {
