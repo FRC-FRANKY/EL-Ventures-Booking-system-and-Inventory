@@ -1,6 +1,6 @@
 .role-selection {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f0f8 0%, #e8f4fc 50%, #f0f5f8 100%);
+  background: linear-gradient(135deg, #fdb7d6 0%, #DA90B0 50%, #c03873 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -44,12 +44,15 @@
 
 .role-card {
   width: 100%;
-  background: #f7fafc;
-  border: none;
-  border-radius: 16px;
-  padding: 2rem 1.5rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
+  background: linear-gradient(180deg, #ffffff 0%, #ffeaf5 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(255, 182, 210, 0.6),
+    0 20px 45px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.7);
+  padding: 2rem 1.75rem 1.75rem;
+  transform: translateY(-4px);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-align: center;
   display: flex;
@@ -60,8 +63,18 @@
 }
 
 .role-card:hover {
-  transform: scale(1.03);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+  box-shadow:
+    0 26px 55px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 200, 225, 0.9);
+}
+
+/* Emphasize Receptionist (middle) card to float more */
+.role-selection__card-wrapper:nth-child(2) .role-card {
+  transform: translateY(-8px);
+  box-shadow:
+    0 28px 60px rgba(0, 0, 0, 0.26),
+    0 0 0 1px rgba(255, 200, 225, 0.95);
 }
 
 .role-card:focus {
@@ -109,6 +122,34 @@
   color: #718096;
   line-height: 1.5;
   margin: 0;
+}
+
+.role-card__footer {
+  margin-top: 0.75rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.role-card__btn {
+  min-width: 60%;
+  padding: 0.6rem 1.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fbf5f8;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08), inset 0 2px 4px rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a2b45;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.role-card__btn--primary {
+  background: linear-gradient(90deg, #ff5fa2 0%, #ff2d92 100%);
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(196, 17, 107, 0.65);
+  color: #ffffff;
 }
 
 .role-selection__instruction {

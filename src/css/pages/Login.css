@@ -57,7 +57,7 @@
 
 /* Receptionist login */
 .login-page--receptionist {
-  background: linear-gradient(135deg, #e8f4fc 0%, #d6ebf7 50%, #eef6fc 100%);
+  background: linear-gradient(135deg, #F5D2D2 50%, #FE9EC7 50%, #ff97ae 50%);
   position: relative;
 }
 
@@ -91,7 +91,7 @@
 }
 
 .login-card {
-  background: #fff;
+  background: #FFE4EF;
   border-radius: 16px;
   padding: 2.5rem 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -104,7 +104,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #3182ce;
+  background: #F075AE;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -270,7 +270,7 @@
 
 /* HR Manager login */
 .login-page--hr {
-  background: linear-gradient(135deg, #f5f0f8 0%, #ede9fe 50%, #f5f3ff 100%);
+  background: linear-gradient(135deg, #FF3E9B 50%, #FF88BA 50%, #FE9EC7 100%);
   position: relative;
 }
 

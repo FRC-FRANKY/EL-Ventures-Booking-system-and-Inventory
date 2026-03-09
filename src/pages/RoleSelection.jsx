@@ -7,13 +7,17 @@ const ROLES = [
     title: 'HR Manager',
     description: 'Access daily reports and employee management.',
     iconColor: 'purple',
+    buttonLabel: 'HR Manager',
+    isPrimary: false,
     loginPath: '/login/hr-manager',
   },
   {
     id: 'receptionist',
     title: 'Receptionist',
-    description: 'Manage appointments and customer database',
+    description: 'Manage appointments and customer database.',
     iconColor: 'blue',
+    buttonLabel: 'Receptionist',
+    isPrimary: true,
     loginPath: '/login/receptionist',
   },
   {
@@ -21,6 +25,8 @@ const ROLES = [
     title: 'Accounting & Inventory',
     description: 'Handle inventory, sales, expenses, and receipts',
     iconColor: 'green',
+    buttonLabel: 'Accounting',
+    isPrimary: false,
     loginPath: '/login/accounting-inventory',
   },
 ]
@@ -33,12 +39,7 @@ function RoleCard({ role }) {
   }
 
   return (
-    <button
-      type="button"
-      className="role-card"
-      onClick={handleClick}
-      aria-label={`Select ${role.title} role`}
-    >
+    <div className="role-card">
       <div className={`role-card__icon role-card__icon--${role.iconColor}`}>
         {role.iconColor === 'purple' && (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -62,7 +63,17 @@ function RoleCard({ role }) {
       </div>
       <h2 className="role-card__title">{role.title}</h2>
       <p className="role-card__description">{role.description}</p>
-    </button>
+      <div className="role-card__footer">
+        <button
+          type="button"
+          className={`role-card__btn${role.isPrimary ? ' role-card__btn--primary' : ''}`}
+          onClick={handleClick}
+          aria-label={`Select ${role.title} role`}
+        >
+          {role.buttonLabel}
+        </button>
+      </div>
+    </div>
   )
 }
 
