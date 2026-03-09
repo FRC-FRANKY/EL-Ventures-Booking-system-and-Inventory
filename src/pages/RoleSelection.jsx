@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import './RoleSelection.css'
+import '../css/pages/RoleSelection.css'
 
 const ROLES = [
   {

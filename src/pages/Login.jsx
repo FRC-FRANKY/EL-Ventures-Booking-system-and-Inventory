@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import './Login.css'
+import '../css/pages/Login.css'
 
 const ROLE_LABELS = {
   'hr-manager': 'HR Manager',
