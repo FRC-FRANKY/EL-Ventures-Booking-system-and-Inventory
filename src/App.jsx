@@ -10,6 +10,7 @@ import HRManagerDailyReport from './pages/HRManagerDailyReport'
 import AccountingDashboard from './pages/AccountingDashboard'
 import AccountingPlaceholder from './pages/AccountingPlaceholder'
 import InventoryPage from './pages/InventoryPage'
+import ReceiptPage from './pages/ReceiptPage'
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
       <Route path="/accounting-inventory/inventory" element={<InventoryPage />} />
       <Route path="/accounting-inventory/sales" element={<AccountingPlaceholder title="Sales" />} />
       <Route path="/accounting-inventory/expenses" element={<AccountingPlaceholder title="Expenses" />} />
-      <Route path="/accounting-inventory/receipt" element={<AccountingPlaceholder title="Receipt" />} />
+      <Route path="/accounting-inventory/receipt" element={<ReceiptPage />} />
     </Routes>
   )
 }
