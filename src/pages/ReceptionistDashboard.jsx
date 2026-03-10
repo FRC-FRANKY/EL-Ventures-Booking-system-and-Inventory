@@ -18,7 +18,7 @@ export default function ReceptionistDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header fullName={fullName} />
-      <Navbar />
+      <Navbar fullName={fullName} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-2">

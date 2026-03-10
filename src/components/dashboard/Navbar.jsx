@@ -7,7 +7,7 @@ const navItems = [
   { to: '/receptionist/customers', icon: Users, label: 'Customers' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ fullName }) {
   return (
     <nav className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto flex gap-1">
@@ -15,6 +15,7 @@ export default function Navbar() {
           <NavLink
             key={to}
             to={to}
+            state={fullName ? { fullName } : undefined}
             end={to === '/receptionist/dashboard'}
             className={({ isActive }) =>
               `inline-flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${
