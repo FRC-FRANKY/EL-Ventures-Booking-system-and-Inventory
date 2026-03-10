@@ -57,6 +57,7 @@ export default function ReceptionistWelcome() {
           loginAt,
           logoutAt: '—',
           duration: '—',
+          startedAtMs: now.getTime(),
         }
         const existingRaw = localStorage.getItem(STORAGE_KEY)
         const existing = existingRaw ? JSON.parse(existingRaw) : []
