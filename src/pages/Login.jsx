@@ -9,9 +9,9 @@ const ROLE_LABELS = {
 }
 
 const DEMO_CREDENTIALS = {
-  receptionist: { username: 'receptionist1', password: 'reception123' },
-  'hr-manager': { username: 'hrmanager1', password: 'hrmanager123' },
-  'accounting-inventory': { username: 'accounting1', password: 'accounting123' },
+  receptionist: { username: 'receptionteam.el@gmail.com', password: 'position_reception' },
+  'hr-manager': { username: 'hrteam.el@gmail.com', password: 'position_hr' },
+  'accounting-inventory': { username: 'account&inveteam.el@gmail.com', password: 'position_account&inve' },
 }
 
 function UserIcon() {
@@ -201,8 +201,6 @@ export default function Login() {
               <ArrowRightIcon />
             </button>
           </form>
-
-          
         </div>
       </div>
     )
@@ -275,12 +273,6 @@ export default function Login() {
               <ArrowRightIcon />
             </button>
           </form>
-
-          <div className="login-demo">
-            <strong className="login-demo__title">Demo Credentials:</strong>
-            <p className="login-demo__line">Username: hrmanager1</p>
-            <p className="login-demo__line">Password: hrmanager123</p>
-          </div>
         </div>
       </div>
     )
@@ -353,12 +345,6 @@ export default function Login() {
               <ArrowRightIcon />
             </button>
           </form>
-
-          <div className="login-demo">
-            <strong className="login-demo__title">Demo Credentials:</strong>
-            <p className="login-demo__line">Username: accounting1</p>
-            <p className="login-demo__line">Password: accounting123</p>
-          </div>
         </div>
       </div>
     )
