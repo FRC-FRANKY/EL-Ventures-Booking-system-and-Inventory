@@ -47,7 +47,7 @@ const stats = [
 export default function HRManagerDashboard() {
   const navigate = useNavigate()
   const location = useLocation()
-  const displayName = location.state?.username || 'HR Recel Orcales'
+  const displayName = location.state?.fullName || 'HR Recel Orcales'
 
   return (
     <div className="min-h-screen bg-gray-100">

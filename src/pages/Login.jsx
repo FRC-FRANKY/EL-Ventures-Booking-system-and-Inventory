@@ -114,7 +114,7 @@ export default function Login() {
     if (isHrManager) {
       const demo = DEMO_CREDENTIALS['hr-manager']
       if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
-        navigate('/hr-manager/dashboard', { state: { username } })
+        navigate('/hr-manager/dashboard', { state: { fullName: 'HR Recel Orcales' } })
         return
       }
       setError('Invalid username or password. Please try again.')

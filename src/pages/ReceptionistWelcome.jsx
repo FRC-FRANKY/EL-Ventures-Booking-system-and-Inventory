@@ -35,6 +35,7 @@ export default function ReceptionistWelcome() {
   const location = useLocation()
   const username = location.state?.username || 'receptionist1'
   const [fullName, setFullName] = useState('')
+  const displayName = fullName.trim() || username
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -79,7 +80,7 @@ export default function ReceptionistWelcome() {
         <div className="welcome-card__icon-wrap">
           <UserAvatarIcon />
         </div>
-        <h1 className="welcome-card__title">Welcome, {username}!</h1>
+        <h1 className="welcome-card__title">Welcome, {displayName}!</h1>
         <p className="welcome-card__subtitle">Please enter your full name to continue</p>
 
         <form className="welcome-form" onSubmit={handleSubmit}>
