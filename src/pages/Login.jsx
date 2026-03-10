@@ -202,11 +202,7 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="login-demo">
-            <strong className="login-demo__title">Demo Credentials:</strong>
-            <p className="login-demo__line">Username: receptionist1</p>
-            <p className="login-demo__line">Password: reception123</p>
-          </div>
+          
         </div>
       </div>
     )
