@@ -28,6 +28,8 @@ function ArrowRightIcon() {
   )
 }
 
+const STORAGE_KEY = 'receptionistLoginHistory'
+
 export default function ReceptionistWelcome() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -37,6 +39,32 @@ export default function ReceptionistWelcome() {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (fullName.trim()) {
+      try {
+        const now = new Date()
+        const loginAt = now.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+        const newRecord = {
+          id: String(Date.now()),
+          username: fullName.trim(),
+          roleTag: `@${username}`,
+          loginAt,
+          logoutAt: '—',
+          duration: '—',
+        }
+        const existingRaw = localStorage.getItem(STORAGE_KEY)
+        const existing = existingRaw ? JSON.parse(existingRaw) : []
+        const records = Array.isArray(existing) ? existing : []
+        const updated = [newRecord, ...records]
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      } catch {
+        // ignore storage errors
+      }
       navigate('/receptionist/dashboard', { state: { fullName: fullName.trim(), username } })
     }
   }

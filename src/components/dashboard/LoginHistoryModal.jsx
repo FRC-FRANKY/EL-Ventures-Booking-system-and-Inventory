@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { X, Clock, User } from 'lucide-react'
 
 const SAMPLE_HISTORY = [
@@ -19,7 +20,24 @@ const SAMPLE_HISTORY = [
   },
 ]
 
-export default function LoginHistoryModal({ onClose, title = 'Receptionist Login History', records = SAMPLE_HISTORY }) {
+const STORAGE_KEY = 'receptionistLoginHistory'
+
+export default function LoginHistoryModal({ onClose, title = 'Receptionist Login History' }) {
+  const [records, setRecords] = useState(SAMPLE_HISTORY)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setRecords(parsed)
+      }
+    } catch {
+      // ignore parse errors and keep sample data
+    }
+  }, [])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
