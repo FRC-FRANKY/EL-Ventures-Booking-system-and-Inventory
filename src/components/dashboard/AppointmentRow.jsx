@@ -6,7 +6,7 @@ const statusStyles = {
   Completed: 'bg-green-100 text-green-800',
 }
 
-export default function AppointmentRow({ appointment }) {
+export default function AppointmentRow({ appointment, onViewDetails }) {
   const statusClass = statusStyles[appointment.status] || 'bg-gray-100 text-gray-800'
 
   return (
@@ -46,6 +46,7 @@ export default function AppointmentRow({ appointment }) {
         <button
           type="button"
           className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1"
+          onClick={() => onViewDetails?.(appointment)}
         >
           View Details
         </button>

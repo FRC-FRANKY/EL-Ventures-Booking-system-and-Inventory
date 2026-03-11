@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import { useState } from 'react'
 import Header from '../components/dashboard/Header'
 import Navbar from '../components/dashboard/Navbar'
 import AppointmentStatsCards from '../components/dashboard/AppointmentStatsCards'
@@ -9,6 +10,11 @@ import AppointmentsTable from '../components/dashboard/AppointmentsTable'
 export default function ReceptionistAppointments() {
   const location = useLocation()
   const fullName = location.state?.fullName || 'Frank Oliver Bentoy'
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState('All Statuses')
+  const [date, setDate] = useState('')
+  const [stylist, setStylist] = useState('All Stylists')
+  const [activeTab, setActiveTab] = useState('Today')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,11 +26,26 @@ export default function ReceptionistAppointments() {
           <AppointmentStatsCards />
         </section>
 
-        <FilterBar />
+        <FilterBar
+          search={search}
+          status={status}
+          date={date}
+          stylist={stylist}
+          onSearchChange={setSearch}
+          onStatusChange={setStatus}
+          onDateChange={setDate}
+          onStylistChange={setStylist}
+        />
 
-        <AppointmentTabs />
+        <AppointmentTabs activeTab={activeTab} onChange={setActiveTab} />
 
-        <AppointmentsTable />
+        <AppointmentsTable
+          activeTab={activeTab}
+          search={search}
+          status={status}
+          date={date}
+          stylist={stylist}
+        />
       </main>
     </div>
   )

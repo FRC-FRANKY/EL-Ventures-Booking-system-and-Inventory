@@ -1,11 +1,15 @@
-import { useState } from 'react'
 import { Filter, Search, Calendar, ChevronDown } from 'lucide-react'
 
-export default function FilterBar() {
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('All Statuses')
-  const [date, setDate] = useState('')
-  const [stylist, setStylist] = useState('All Stylists')
+export default function FilterBar({
+  search,
+  status,
+  date,
+  stylist,
+  onSearchChange,
+  onStatusChange,
+  onDateChange,
+  onStylistChange,
+}) {
 
   return (
     <div className="bg-gray-100 rounded-xl p-4 shadow-sm">
@@ -23,14 +27,14 @@ export default function FilterBar() {
               type="text"
               placeholder="Search by name or phone..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => onSearchChange?.(e.target.value)}
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
           <div className="relative">
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => onStatusChange?.(e.target.value)}
               className="w-full pl-3 pr-9 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
             >
               <option>All Statuses</option>
@@ -47,14 +51,14 @@ export default function FilterBar() {
               type="text"
               placeholder="dd/mm/yyyy"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => onDateChange?.(e.target.value)}
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
           <div className="relative">
             <select
               value={stylist}
-              onChange={(e) => setStylist(e.target.value)}
+              onChange={(e) => onStylistChange?.(e.target.value)}
               className="w-full pl-3 pr-9 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
             >
               <option>All Stylists</option>
