@@ -48,7 +48,7 @@ export default function ReceiptTable({ lineItems, onItemsChange, onAddLine, onCl
                       type="date"
                       value={row.serviceDate}
                       onChange={(e) => updateItem(index, 'serviceDate', e.target.value)}
-                      placeholder="dd/mm/yyyy"
+                      placeholder="mm/dd/yyyy"
                       className="w-full min-w-[140px] px-2 py-1.5 rounded border border-gray-200 bg-white text-gray-900 focus:ring-1 focus:ring-green-500 focus:border-transparent"
                     />
                   </td>
