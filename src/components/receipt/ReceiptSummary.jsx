@@ -27,6 +27,7 @@ export default function ReceiptSummary({
         <input
           type="text"
           value={receiptNo}
+          placeholder="Receipt no."
           onChange={(e) => onReceiptNoChange(e.target.value)}
           className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
         />
@@ -39,8 +40,10 @@ export default function ReceiptSummary({
           className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
         >
           <option value="">Select location</option>
-          <option value="main">Main Branch</option>
-          <option value="branch2">Branch 2</option>
+          <option value="main">Mandaue City Branch</option>
+          <option value="branch2">Pusok Branch</option>
+          <option value="branch3">Pajac Branch</option>
+          <option value="branch4">Cebu City Branch</option>
         </select>
       </div>
       <div className="border-t border-gray-200 pt-4 space-y-3">
