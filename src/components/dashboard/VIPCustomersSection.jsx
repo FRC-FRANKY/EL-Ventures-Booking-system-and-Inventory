@@ -1,4 +1,3 @@
-import { DollarSign } from 'lucide-react'
 import VIPCustomerCard from './VIPCustomerCard'
 
 const vipCustomers = [
@@ -11,7 +10,7 @@ export default function VIPCustomersSection() {
     <div className="bg-white rounded-xl shadow-sm p-5">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-          <DollarSign className="w-4 h-4 text-amber-600" />
+          <span className="text-sm font-semibold text-amber-700">₱</span>
         </div>
         <h3 className="text-lg font-bold text-gray-900">VIP Customers</h3>
       </div>
