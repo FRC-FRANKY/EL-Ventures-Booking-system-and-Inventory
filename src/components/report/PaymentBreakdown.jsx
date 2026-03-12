@@ -1,5 +1,3 @@
-import { DollarSign } from 'lucide-react'
-
 const rows = [
   { label: 'Cash', value: 'PHP 6,965.00' },
   { label: 'GCash', value: 'PHP 13,530.00' },
@@ -13,7 +11,7 @@ export default function PaymentBreakdown() {
     <div className="bg-white rounded-xl shadow-sm p-5">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center">
-          <DollarSign className="w-5 h-5 text-purple-600" />
+          <span className="text-sm font-semibold text-purple-700">₱</span>
         </div>
         <h3 className="text-lg font-bold text-gray-900">Payment Breakdown</h3>
       </div>
