@@ -60,6 +60,8 @@ export default function HRManagerDailyReport() {
   const [stylistFilter, setStylistFilter] = useState('All Stylists')
   const [dateFilter, setDateFilter] = useState('All Dates')
   const [serviceSearch, setServiceSearch] = useState('')
+  const [reportDate, setReportDate] = useState('07/03/2026')
+  const [branch, setBranch] = useState('Mandaue City Branch')
 
   const filteredFlat = useMemo(
     () => flattenAndFilter(commissionData, stylistFilter, dateFilter, serviceSearch),
@@ -103,14 +105,46 @@ export default function HRManagerDailyReport() {
     )
   }, [])
 
+  const handlePrint = useCallback(() => {
+    window.print()
+  }, [])
+
+  const handleExport = useCallback(() => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      reportDate,
+      branch,
+      commissionFilters: { stylistFilter, dateFilter, serviceSearch },
+      commissionSummary: summary,
+      commissionEntries: filteredFlat,
+    }
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `hr-daily-report_${branch.replace(/\s+/g, '_')}_${reportDate.replaceAll('/', '-')}.json`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  }, [reportDate, branch, stylistFilter, dateFilter, serviceSearch, summary, filteredFlat])
+
   return (
     <div className="min-h-screen bg-[#f5f5f7]">
       <Header />
       <Navbar />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <ReportFilters />
-        <ReportHeader />
+        <ReportFilters
+          reportDate={reportDate}
+          branch={branch}
+          onReportDateChange={setReportDate}
+          onBranchChange={setBranch}
+          onPrint={handlePrint}
+          onExport={handleExport}
+        />
+        <ReportHeader branch={branch} reportDate={reportDate} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
