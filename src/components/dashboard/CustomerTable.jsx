@@ -144,7 +144,7 @@ export default function CustomerTable({ query }) {
                     </span>
                     {customer.isVip && (
                       <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-                        VIP
+                        Regular Customer
                       </span>
                     )}
                   </div>
