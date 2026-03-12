@@ -63,6 +63,16 @@ const tableDate = new Date().toLocaleDateString('en-US', {
   day: 'numeric',
 })
 
+function getDefaultNote(appointment) {
+  if (appointment.status === 'Completed') {
+    return 'Stylist was available and the service has been completed.'
+  }
+  if (appointment.status === 'Confirmed') {
+    return 'Stylist is scheduled and currently marked as available for this time.'
+  }
+  return 'Stylist availability for this time slot is not confirmed. Please verify before confirming.'
+}
+
 export default function AppointmentsTable({
   activeTab,
   search,
@@ -71,6 +81,7 @@ export default function AppointmentsTable({
   stylist,
 }) {
   const [selectedAppointment, setSelectedAppointment] = useState(null)
+  const [notesById, setNotesById] = useState({})
 
   const filtered = useMemo(() => {
     return appointments.filter((apt) => {
@@ -186,12 +197,21 @@ export default function AppointmentsTable({
                 <span className="font-medium">Status:</span> {selectedAppointment.status}
               </p>
             </div>
-            <div className="mt-3 p-3 rounded-lg bg-gray-50 text-sm text-gray-700">
-              {selectedAppointment.status === 'Completed'
-                ? 'Stylist was available and the service has been completed.'
-                : selectedAppointment.status === 'Confirmed'
-                ? 'Stylist is scheduled and currently marked as available for this time.'
-                : 'Stylist availability for this time slot is not confirmed. Please verify before confirming.'}
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Stylist availability note
+              </label>
+              <textarea
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                value={notesById[selectedAppointment.id] ?? getDefaultNote(selectedAppointment)}
+                onChange={(e) =>
+                  setNotesById((prev) => ({
+                    ...prev,
+                    [selectedAppointment.id]: e.target.value,
+                  }))
+                }
+              />
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button

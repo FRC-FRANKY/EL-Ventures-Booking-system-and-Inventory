@@ -12,7 +12,7 @@ export default function VIPCustomersSection() {
         <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
           <span className="text-sm font-semibold text-amber-700">₱</span>
         </div>
-        <h3 className="text-lg font-bold text-gray-900">VIP Customers</h3>
+        <h3 className="text-lg font-bold text-gray-900">Customers</h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {vipCustomers.map((customer) => (

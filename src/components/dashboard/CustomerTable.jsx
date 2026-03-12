@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Phone, Mail } from 'lucide-react'
 
 const customers = [
@@ -91,7 +92,16 @@ const customers = [
   },
 ]
 
-export default function CustomerTable() {
+export default function CustomerTable({ query }) {
+  const filtered = useMemo(() => {
+    const term = query?.trim().toLowerCase()
+    if (!term) return customers
+    return customers.filter((c) => {
+      const haystack = `${c.name} ${c.phone} ${c.email}`.toLowerCase()
+      return haystack.includes(term)
+    })
+  }, [query])
+
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100">
@@ -122,7 +132,7 @@ export default function CustomerTable() {
             </tr>
           </thead>
           <tbody>
-            {customers.map((customer) => (
+            {filtered.map((customer) => (
               <tr
                 key={customer.id}
                 className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
@@ -167,6 +177,16 @@ export default function CustomerTable() {
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="py-6 px-4 text-center text-sm text-gray-500"
+                >
+                  No customers match your search.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

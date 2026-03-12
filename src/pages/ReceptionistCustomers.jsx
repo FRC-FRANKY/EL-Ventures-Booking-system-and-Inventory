@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import { useState } from 'react'
 import Header from '../components/dashboard/Header'
 import Navbar from '../components/dashboard/Navbar'
 import CustomerStatsCards from '../components/dashboard/CustomerStatsCards'
@@ -9,6 +10,7 @@ import CustomerTable from '../components/dashboard/CustomerTable'
 export default function ReceptionistCustomers() {
   const location = useLocation()
   const fullName = location.state?.fullName || 'Frank Oliver Bentoy'
+  const [query, setQuery] = useState('')
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,11 +22,11 @@ export default function ReceptionistCustomers() {
           <CustomerStatsCards />
         </section>
 
-        <CustomerSearchBar />
+        <CustomerSearchBar query={query} onQueryChange={setQuery} />
 
         <VIPCustomersSection />
 
-        <CustomerTable />
+        <CustomerTable query={query} />
       </main>
     </div>
   )
