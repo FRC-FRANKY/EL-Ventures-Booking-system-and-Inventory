@@ -4,6 +4,7 @@ import { Phone, Mail } from 'lucide-react'
 const customers = [
   {
     id: 1,
+    branch: 'Mandaue City Branch',
     name: 'Sarah Johnson',
     isVip: false,
     phone: '(555) 123-4567',
@@ -15,6 +16,7 @@ const customers = [
   },
   {
     id: 2,
+    branch: 'Mandaue City Branch',
     name: 'Michael Chen',
     isVip: false,
     phone: '(555) 234-5678',
@@ -26,6 +28,7 @@ const customers = [
   },
   {
     id: 3,
+    branch: 'Pusok Branch',
     name: 'Emily Davis',
     isVip: true,
     phone: '(555) 345-6789',
@@ -37,6 +40,7 @@ const customers = [
   },
   {
     id: 4,
+    branch: 'Pusok Branch',
     name: 'David Wilson',
     isVip: false,
     phone: '(555) 456-7890',
@@ -48,6 +52,7 @@ const customers = [
   },
   {
     id: 5,
+    branch: 'Pajac Branch',
     name: 'Sophie Brown',
     isVip: true,
     phone: '(555) 789-0123',
@@ -59,6 +64,7 @@ const customers = [
   },
   {
     id: 6,
+    branch: 'Pajac Branch',
     name: 'James Martinez',
     isVip: false,
     phone: '(555) 567-8901',
@@ -70,6 +76,7 @@ const customers = [
   },
   {
     id: 7,
+    branch: 'Cebu City Branch',
     name: 'Lisa Thompson',
     isVip: false,
     phone: '(555) 678-9012',
@@ -81,6 +88,7 @@ const customers = [
   },
   {
     id: 8,
+    branch: 'Cebu City Branch',
     name: 'Robert Taylor',
     isVip: false,
     phone: '(555) 890-1234',
@@ -92,15 +100,16 @@ const customers = [
   },
 ]
 
-export default function CustomerTable({ query }) {
+export default function CustomerTable({ branch, query }) {
   const filtered = useMemo(() => {
     const term = query?.trim().toLowerCase()
-    if (!term) return customers
     return customers.filter((c) => {
+      if (branch && c.branch !== branch) return false
+      if (!term) return true
       const haystack = `${c.name} ${c.phone} ${c.email}`.toLowerCase()
       return haystack.includes(term)
     })
-  }, [query])
+  }, [branch, query])
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">

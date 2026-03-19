@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Scissors, ChevronRight } from 'lucide-react'
-
-const STORAGE_KEY = 'receptionistLoginHistory'
+import { auth, db } from '../../firebase'
+import { ref, get, update } from 'firebase/database'
 
 function formatDuration(startMs, endMs) {
   if (!startMs || !endMs || endMs <= startMs) return '—'
@@ -14,37 +14,43 @@ function formatDuration(startMs, endMs) {
   return `${minutes}m`
 }
 
-export default function Header({ fullName = 'Frank Oliver Bentoy' }) {
+export default function Header({ fullName = 'Receptionist' }) {
   const navigate = useNavigate()
 
-  const handleSwitchRole = () => {
+  const handleSwitchRole = async () => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const now = new Date()
-          const logoutAt = now.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true,
-          })
-          const updated = parsed.map((record, index) => {
-            if (index === 0 && record.logoutAt === '—') {
-              const duration = formatDuration(record.startedAtMs, now.getTime())
-              return { ...record, logoutAt, duration }
-            }
-            return record
-          })
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+      const user = auth.currentUser
+      const sessionId = localStorage.getItem('currentReceptionistSessionId')
+
+      if (user && sessionId) {
+        const sessionRef = ref(db, `loginHistory/${user.uid}/${sessionId}`)
+        const snap = await get(sessionRef)
+        const now = new Date()
+        const logoutAt = now.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+
+        let duration = '—'
+        if (snap.exists() && snap.val().startedAtMs) {
+          duration = formatDuration(snap.val().startedAtMs, now.getTime())
         }
+
+        await update(sessionRef, {
+          logoutAt,
+          duration,
+        })
+
+        localStorage.removeItem('currentReceptionistSessionId')
       }
     } catch {
-      // ignore storage errors
+      // ignore errors saving history
     }
+
     navigate('/')
   }
 

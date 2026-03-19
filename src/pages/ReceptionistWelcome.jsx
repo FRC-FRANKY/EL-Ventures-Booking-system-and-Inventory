@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import '../css/pages/ReceptionistWelcome.css'
+import { auth, db } from '../firebase'
+import { ref, push } from 'firebase/database'
 
 function UserAvatarIcon() {
   return (
@@ -28,47 +30,62 @@ function ArrowRightIcon() {
   )
 }
 
-const STORAGE_KEY = 'receptionistLoginHistory'
-
 export default function ReceptionistWelcome() {
   const navigate = useNavigate()
   const location = useLocation()
-  const username = location.state?.username || 'receptionist1'
+  const username = location.state?.username
+  const branch = location.state?.branch || 'Mandaue City Branch'
   const [fullName, setFullName] = useState('')
-  const displayName = fullName.trim() || username
+  const displayName = username || 'Receptionist'
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (fullName.trim()) {
-      try {
-        const now = new Date()
-        const loginAt = now.toLocaleString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true,
-        })
-        const newRecord = {
-          id: String(Date.now()),
-          username: fullName.trim(),
-          roleTag: `@${username}`,
-          loginAt,
-          logoutAt: '—',
-          duration: '—',
-          startedAtMs: now.getTime(),
-        }
-        const existingRaw = localStorage.getItem(STORAGE_KEY)
-        const existing = existingRaw ? JSON.parse(existingRaw) : []
-        const records = Array.isArray(existing) ? existing : []
-        const updated = [newRecord, ...records]
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-      } catch {
-        // ignore storage errors
-      }
-      navigate('/receptionist/dashboard', { state: { fullName: fullName.trim(), username } })
+  // If this page is opened directly without username in state,
+  // send the user back to the receptionist login page.
+  useEffect(() => {
+    if (!username) {
+      navigate('/login/receptionist', { replace: true })
     }
+  }, [username, navigate])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!fullName.trim()) return
+
+    const user = auth.currentUser
+    if (!user) {
+      navigate('/login/receptionist')
+      return
+    }
+
+    try {
+      const now = new Date()
+      const loginAt = now.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      })
+
+      const historyRef = ref(db, `loginHistory/${user.uid}`)
+      const newEntryRef = await push(historyRef, {
+        fullName: fullName.trim(),
+        username,
+        branch,
+        loginAt,
+        logoutAt: '—',
+        duration: '—',
+        startedAtMs: now.getTime(),
+      })
+
+      localStorage.setItem('currentReceptionistSessionId', newEntryRef.key)
+    } catch {
+      // ignore errors saving history
+    }
+
+    navigate('/receptionist/dashboard', {
+      state: { fullName: fullName.trim(), branch, fromWelcome: true },
+    })
   }
 
   return (

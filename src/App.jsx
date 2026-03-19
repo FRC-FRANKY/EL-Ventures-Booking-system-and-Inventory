@@ -3,6 +3,7 @@ import RoleSelection from './pages/RoleSelection'
 import Login from './pages/Login'
 import ReceptionistWelcome from './pages/ReceptionistWelcome'
 import ReceptionistDashboard from './pages/ReceptionistDashboard'
+import ReceptionistSignUp from './pages/ReceptionistSignUp'
 import ReceptionistAppointments from './pages/ReceptionistAppointments'
 import ReceptionistCustomers from './pages/ReceptionistCustomers'
 import HRManagerDashboard from './pages/HRManagerDashboard'
@@ -18,6 +19,7 @@ function App() {
       <Route path="/" element={<RoleSelection />} />
       <Route path="/login/:role" element={<Login />} />
       <Route path="/receptionist/welcome" element={<ReceptionistWelcome />} />
+      <Route path="/receptionist/signup" element={<ReceptionistSignUp />} />
       <Route path="/receptionist/dashboard" element={<ReceptionistDashboard />} />
       <Route path="/receptionist/appointments" element={<ReceptionistAppointments />} />
       <Route path="/receptionist/customers" element={<ReceptionistCustomers />} />

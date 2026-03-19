@@ -10,7 +10,7 @@ const customers = [
 export default function RecentCustomers() {
   const navigate = useNavigate()
   const location = useLocation()
-  const fullName = location.state?.fullName || 'Frank Oliver Bentoy'
+  const fullName = location.state?.fullName || 'Receptionist'
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 h-full flex flex-col">

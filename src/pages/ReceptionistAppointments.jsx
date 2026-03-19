@@ -9,7 +9,8 @@ import AppointmentsTable from '../components/dashboard/AppointmentsTable'
 
 export default function ReceptionistAppointments() {
   const location = useLocation()
-  const fullName = location.state?.fullName || 'Frank Oliver Bentoy'
+  const fullName = location.state?.fullName || 'Receptionist'
+  const branch = location.state?.branch || 'Mandaue City Branch'
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('All Statuses')
   const [date, setDate] = useState('')
@@ -40,6 +41,7 @@ export default function ReceptionistAppointments() {
         <AppointmentTabs activeTab={activeTab} onChange={setActiveTab} />
 
         <AppointmentsTable
+          branch={branch}
           activeTab={activeTab}
           search={search}
           status={status}

@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import '../css/pages/Login.css'
+import { auth, db } from '../firebase'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { ref, get } from 'firebase/database'
 
 const ROLE_LABELS = {
   'hr-manager': 'HR Manager',
@@ -9,7 +12,6 @@ const ROLE_LABELS = {
 }
 
 const DEMO_CREDENTIALS = {
-  receptionist: { username: 'receptionteam.el@gmail.com', password: 'position_reception' },
   'hr-manager': { username: 'hrteam.el@gmail.com', password: 'position_hr' },
   'accounting-inventory': { username: 'account&inveteam.el@gmail.com', password: 'position_account&inve' },
 }
@@ -89,6 +91,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -102,12 +105,44 @@ export default function Login() {
     }
 
     if (isReceptionist) {
-      const demo = DEMO_CREDENTIALS.receptionist
-      if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
-        navigate('/receptionist/welcome', { state: { username } })
+      if (!trimmedUsername || !trimmedPassword) {
+        setError('Please enter both email and password.')
         return
       }
-      setError('Invalid username or password. Please try again.')
+
+      setLoading(true)
+      signInWithEmailAndPassword(auth, trimmedUsername, trimmedPassword)
+        .then(async (cred) => {
+          const uid = cred.user.uid
+          let branch = 'Mandaue City Branch'
+          let usernameForWelcome = ''
+
+          try {
+            const snap = await get(ref(db, `receptionists/${uid}`))
+            if (snap.exists()) {
+              const data = snap.val()
+              if (data.branch) branch = data.branch
+              if (data.username) usernameForWelcome = data.username
+            }
+          } catch {
+            // ignore profile load errors, use defaults
+          }
+
+          if (!usernameForWelcome) {
+            usernameForWelcome = trimmedUsername.split('@')[0]
+          }
+
+          navigate('/receptionist/welcome', {
+            state: { username: usernameForWelcome, branch },
+          })
+        })
+        .catch(() => {
+          setError('Invalid email or password. Please try again.')
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+
       return
     }
 
@@ -156,18 +191,18 @@ export default function Login() {
             )}
 
             <label className="login-form__label" htmlFor="login-username">
-              Username
+              Email
             </label>
             <div className="login-input-wrap">
               <UserIcon />
               <input
                 id="login-username"
-                type="text"
+                type="email"
                 className="login-input"
-                placeholder="Enter your username"
+                placeholder="Enter your email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
+                autoComplete="email"
                 autoFocus
               />
             </div>
@@ -196,9 +231,17 @@ export default function Login() {
               </button>
             </div>
 
-            <button type="submit" className="login-btn">
-              <span>Login</span>
-              <ArrowRightIcon />
+            <button type="submit" className="login-btn" disabled={loading}>
+              <span>{loading ? 'Logging in…' : 'Login'}</span>
+              {!loading && <ArrowRightIcon />}
+            </button>
+
+            <button
+              type="button"
+              className="login-btn login-btn--secondary"
+              onClick={() => navigate('/receptionist/signup')}
+            >
+              Create Receptionist Account
             </button>
           </form>
         </div>

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Clock } from 'lucide-react'
 import Header from '../components/dashboard/Header'
 import Navbar from '../components/dashboard/Navbar'
@@ -12,13 +12,20 @@ import LoginHistoryModal from '../components/dashboard/LoginHistoryModal'
 
 export default function ReceptionistDashboard() {
   const location = useLocation()
-  const fullName = location.state?.fullName || 'Frank Oliver Bentoy'
+  const navigate = useNavigate()
+  const fullName = location.state?.fullName
   const [showLoginHistory, setShowLoginHistory] = useState(false)
+
+  useEffect(() => {
+    if (!fullName || !location.state?.fromWelcome) {
+      navigate('/receptionist/welcome', { replace: true })
+    }
+  }, [fullName, location.state, navigate])
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header fullName={fullName} />
-      <Navbar fullName={fullName} />
+      <Header fullName={fullName || 'Receptionist'} />
+      <Navbar fullName={fullName || 'Receptionist'} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-2">

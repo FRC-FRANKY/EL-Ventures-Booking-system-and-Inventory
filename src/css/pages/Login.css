@@ -241,6 +241,20 @@
   transition: background 0.2s ease, transform 0.15s ease;
 }
 
+.login-btn--secondary {
+  margin-top: 0.75rem;
+  background: #edf2f7;
+  color: #e31ed6;
+}
+
+.login-btn--secondary:hover {
+  background: #e2e8f0;
+}
+
+.login-btn--secondary:focus {
+  box-shadow: 0 0 0 3px rgba(160, 174, 192, 0.4);
+}
+
 .login-btn:hover {
   background: #2d3748;
 }

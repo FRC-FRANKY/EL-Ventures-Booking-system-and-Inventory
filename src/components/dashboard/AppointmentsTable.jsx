@@ -4,6 +4,7 @@ import AppointmentRow from './AppointmentRow'
 const appointments = [
   {
     id: 1,
+    branch: 'Mandaue City Branch',
     customer: 'Sarah Johnson',
     contact: '(555) 123-4567',
     service: 'Haircut & Styling',
@@ -17,6 +18,7 @@ const appointments = [
   },
   {
     id: 2,
+    branch: 'Pusok Branch',
     customer: 'Michael Chen',
     contact: '(555) 234-5678',
     service: 'Hair Coloring',
@@ -30,6 +32,7 @@ const appointments = [
   },
   {
     id: 3,
+    branch: 'Pajac Branch',
     customer: 'Emily Rodriguez',
     contact: '(555) 345-6789',
     service: 'Manicure & Pedicure',
@@ -43,6 +46,7 @@ const appointments = [
   },
   {
     id: 4,
+    branch: 'Cebu City Branch',
     customer: 'Robert Taylor',
     contact: '(555) 456-7890',
     service: 'Haircut',
@@ -74,6 +78,7 @@ function getDefaultNote(appointment) {
 }
 
 export default function AppointmentsTable({
+  branch,
   activeTab,
   search,
   status,
@@ -85,6 +90,7 @@ export default function AppointmentsTable({
 
   const filtered = useMemo(() => {
     return appointments.filter((apt) => {
+      if (branch && apt.branch !== branch) return false
       if (activeTab === 'Today' && apt.group !== 'Today') return false
       if (activeTab === 'Upcoming' && apt.group !== 'Upcoming') return false
 

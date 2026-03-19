@@ -21,7 +21,7 @@ const actions = [
 export default function QuickActions() {
   const navigate = useNavigate()
   const location = useLocation()
-  const fullName = location.state?.fullName || 'Frank Oliver Bentoy'
+  const fullName = location.state?.fullName || 'Receptionist'
 
   return (
     <section>

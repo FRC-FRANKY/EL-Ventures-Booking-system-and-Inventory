@@ -9,7 +9,7 @@ const formatDate = (date) => {
   })
 }
 
-export default function WelcomeBanner({ fullName = 'Frank Oliver Bentoy', date = new Date() }) {
+export default function WelcomeBanner({ fullName = 'Receptionist', date = new Date() }) {
   return (
     <div className="rounded-xl bg-gradient-to-r from-blue-500 to-teal-500 p-6 sm:p-8 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>

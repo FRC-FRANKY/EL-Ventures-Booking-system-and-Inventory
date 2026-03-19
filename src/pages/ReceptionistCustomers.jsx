@@ -9,7 +9,8 @@ import CustomerTable from '../components/dashboard/CustomerTable'
 
 export default function ReceptionistCustomers() {
   const location = useLocation()
-  const fullName = location.state?.fullName || 'Frank Oliver Bentoy'
+  const fullName = location.state?.fullName || 'Receptionist'
+  const branch = location.state?.branch || 'Mandaue City Branch'
   const [query, setQuery] = useState('')
 
   return (
@@ -26,7 +27,7 @@ export default function ReceptionistCustomers() {
 
         <VIPCustomersSection />
 
-        <CustomerTable query={query} />
+        <CustomerTable branch={branch} query={query} />
       </main>
     </div>
   )
