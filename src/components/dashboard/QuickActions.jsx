@@ -22,6 +22,7 @@ export default function QuickActions() {
   const navigate = useNavigate()
   const location = useLocation()
   const fullName = location.state?.fullName || 'Receptionist'
+  const branch = location.state?.branch || 'Mandaue City Branch'
 
   return (
     <section>
@@ -33,7 +34,7 @@ export default function QuickActions() {
             <button
               key={action.title}
               type="button"
-              onClick={() => navigate(action.path, { state: { fullName } })}
+              onClick={() => navigate(action.path, { state: { fullName, branch } })}
               className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4 text-left hover:shadow-md hover:bg-gray-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             >
               <div

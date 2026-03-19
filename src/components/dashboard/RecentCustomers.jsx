@@ -11,6 +11,7 @@ export default function RecentCustomers() {
   const navigate = useNavigate()
   const location = useLocation()
   const fullName = location.state?.fullName || 'Receptionist'
+  const branch = location.state?.branch || 'Mandaue City Branch'
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-5 h-full flex flex-col">
@@ -31,7 +32,7 @@ export default function RecentCustomers() {
       </ul>
       <button
         type="button"
-        onClick={() => navigate('/receptionist/customers', { state: { fullName } })}
+        onClick={() => navigate('/receptionist/customers', { state: { fullName, branch } })}
         className="mt-4 w-full py-2.5 rounded-lg bg-gray-100 text-gray-700 font-medium text-sm hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
       >
         View All Customers

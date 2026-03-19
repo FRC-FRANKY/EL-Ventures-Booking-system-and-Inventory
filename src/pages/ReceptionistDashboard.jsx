@@ -14,18 +14,19 @@ export default function ReceptionistDashboard() {
   const location = useLocation()
   const navigate = useNavigate()
   const fullName = location.state?.fullName
+  const branch = location.state?.branch || 'Mandaue City Branch'
   const [showLoginHistory, setShowLoginHistory] = useState(false)
 
   useEffect(() => {
-    if (!fullName || !location.state?.fromWelcome) {
+    if (!fullName) {
       navigate('/receptionist/welcome', { replace: true })
     }
-  }, [fullName, location.state, navigate])
+  }, [fullName, navigate])
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header fullName={fullName || 'Receptionist'} />
-      <Navbar fullName={fullName || 'Receptionist'} />
+      <Navbar fullName={fullName || 'Receptionist'} branch={branch} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-2">

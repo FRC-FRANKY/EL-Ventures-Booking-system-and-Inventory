@@ -1,64 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AppointmentRow from './AppointmentRow'
-
-const appointments = [
-  {
-    id: 1,
-    branch: 'Mandaue City Branch',
-    customer: 'Sarah Johnson',
-    contact: '(555) 123-4567',
-    service: 'Haircut & Styling',
-    stylist: 'Emma Williams',
-    dateTime: 'Mar 5, 2026 – 9:00 AM',
-    duration: '60 min',
-    price: 'PHP 85',
-    status: 'Confirmed',
-    group: 'Today',
-    dateKey: '03/05/2026',
-  },
-  {
-    id: 2,
-    branch: 'Pusok Branch',
-    customer: 'Michael Chen',
-    contact: '(555) 234-5678',
-    service: 'Hair Coloring',
-    stylist: 'Lisa Cruz',
-    dateTime: 'Mar 5, 2026 – 10:30 AM',
-    duration: '120 min',
-    price: 'PHP 180',
-    status: 'Confirmed',
-    group: 'Today',
-    dateKey: '03/05/2026',
-  },
-  {
-    id: 3,
-    branch: 'Pajac Branch',
-    customer: 'Emily Rodriguez',
-    contact: '(555) 345-6789',
-    service: 'Manicure & Pedicure',
-    stylist: 'Ana Reyes',
-    dateTime: 'Mar 5, 2026 – 2:00 PM',
-    duration: '90 min',
-    price: 'PHP 75',
-    status: 'Pending',
-    group: 'Upcoming',
-    dateKey: '03/05/2026',
-  },
-  {
-    id: 4,
-    branch: 'Cebu City Branch',
-    customer: 'Robert Taylor',
-    contact: '(555) 456-7890',
-    service: 'Haircut',
-    stylist: 'Maria Santos',
-    dateTime: 'Mar 4, 2026 – 11:00 AM',
-    duration: '45 min',
-    price: 'PHP 45',
-    status: 'Completed',
-    group: 'All',
-    dateKey: '03/04/2026',
-  },
-]
+import { listenToBranchAppointments } from '../../utils/firebaseHelpers'
 
 const tableDate = new Date().toLocaleDateString('en-US', {
   weekday: 'long',
@@ -66,6 +8,46 @@ const tableDate = new Date().toLocaleDateString('en-US', {
   month: 'long',
   day: 'numeric',
 })
+
+function classifyAppointment(apt) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const aptDate = new Date(apt.preferredDate)
+  aptDate.setHours(0, 0, 0, 0)
+
+  if (apt.status === 'completed') return 'All'
+  if (aptDate.getTime() === today.getTime()) return 'Today'
+  if (aptDate.getTime() > today.getTime()) return 'Upcoming'
+  return 'All'
+}
+
+function formatDateTime(date, time) {
+  try {
+    const d = new Date(date)
+    const formatted = d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+    return `${formatted} – ${time}`
+  } catch {
+    return `${date} – ${time}`
+  }
+}
+
+function formatDateKey(date) {
+  try {
+    const d = new Date(date)
+    return d.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    })
+  } catch {
+    return date
+  }
+}
 
 function getDefaultNote(appointment) {
   if (appointment.status === 'Completed') {
@@ -85,12 +67,53 @@ export default function AppointmentsTable({
   date,
   stylist,
 }) {
+  const [appointments, setAppointments] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [notesById, setNotesById] = useState({})
 
+  useEffect(() => {
+    const unsubscribe = listenToBranchAppointments(branch, (data) => {
+      const mapped = data.map((apt) => {
+        const services = apt.services
+          ? typeof apt.services === 'object'
+            ? Object.values(apt.services).join(', ')
+            : String(apt.services)
+          : 'N/A'
+
+        const stylistName = apt.stylists
+          ? typeof apt.stylists === 'object'
+            ? Object.values(apt.stylists).join(', ')
+            : String(apt.stylists)
+          : 'N/A'
+
+        const group = classifyAppointment(apt)
+
+        return {
+          id: apt.id,
+          branch: apt.branchName || branch,
+          customer: apt.customerName || 'Unknown',
+          contact: apt.phone || 'N/A',
+          service: services,
+          stylist: stylistName,
+          dateTime: formatDateTime(apt.preferredDate, apt.preferredTime),
+          duration: apt.duration || '—',
+          price: apt.price || '—',
+          status: apt.status || 'pending',
+          group,
+          dateKey: formatDateKey(apt.preferredDate),
+          notes: apt.notes || '',
+        }
+      })
+      setAppointments(mapped)
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [branch])
+
   const filtered = useMemo(() => {
     return appointments.filter((apt) => {
-      if (branch && apt.branch !== branch) return false
       if (activeTab === 'Today' && apt.group !== 'Today') return false
       if (activeTab === 'Upcoming' && apt.group !== 'Upcoming') return false
 
@@ -112,7 +135,15 @@ export default function AppointmentsTable({
 
       return true
     })
-  }, [activeTab, search, status, date, stylist])
+  }, [appointments, activeTab, search, status, date, stylist])
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
+        Loading appointments...
+      </div>
+    )
+  }
 
   return (
     <>
