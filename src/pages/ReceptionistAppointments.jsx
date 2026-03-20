@@ -1,11 +1,11 @@
 import { useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import Header from '../components/dashboard/Header'
-import Navbar from '../components/dashboard/Navbar'
+import ManagementShell from '../components/shell/ManagementShell'
 import AppointmentStatsCards from '../components/dashboard/AppointmentStatsCards'
 import FilterBar from '../components/dashboard/FilterBar'
 import AppointmentTabs from '../components/dashboard/AppointmentTabs'
 import AppointmentsTable from '../components/dashboard/AppointmentsTable'
+import { useReceptionistSwitchRole } from '../hooks/useReceptionistSwitchRole'
 
 export default function ReceptionistAppointments() {
   const location = useLocation()
@@ -16,39 +16,43 @@ export default function ReceptionistAppointments() {
   const [date, setDate] = useState('')
   const [stylist, setStylist] = useState('All Stylists')
   const [activeTab, setActiveTab] = useState('Today')
+  const switchRole = useReceptionistSwitchRole()
+
+  const receptionistState = { fullName, branch }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header fullName={fullName} />
-      <Navbar fullName={fullName} branch={branch} />
+    <ManagementShell
+      module="receptionist"
+      portalSubtitle={`Receptionist · Appointments · ${branch}`}
+      userName={fullName}
+      receptionistState={receptionistState}
+      onSwitchRole={switchRole}
+    >
+      <section>
+        <AppointmentStatsCards branch={branch} />
+      </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <section>
-          <AppointmentStatsCards />
-        </section>
+      <FilterBar
+        search={search}
+        status={status}
+        date={date}
+        stylist={stylist}
+        onSearchChange={setSearch}
+        onStatusChange={setStatus}
+        onDateChange={setDate}
+        onStylistChange={setStylist}
+      />
 
-        <FilterBar
-          search={search}
-          status={status}
-          date={date}
-          stylist={stylist}
-          onSearchChange={setSearch}
-          onStatusChange={setStatus}
-          onDateChange={setDate}
-          onStylistChange={setStylist}
-        />
+      <AppointmentTabs activeTab={activeTab} onChange={setActiveTab} />
 
-        <AppointmentTabs activeTab={activeTab} onChange={setActiveTab} />
-
-        <AppointmentsTable
-          branch={branch}
-          activeTab={activeTab}
-          search={search}
-          status={status}
-          date={date}
-          stylist={stylist}
-        />
-      </main>
-    </div>
+      <AppointmentsTable
+        branch={branch}
+        activeTab={activeTab}
+        search={search}
+        status={status}
+        date={date}
+        stylist={stylist}
+      />
+    </ManagementShell>
   )
 }

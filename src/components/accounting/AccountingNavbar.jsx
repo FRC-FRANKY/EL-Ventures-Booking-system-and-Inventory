@@ -1,10 +1,9 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Package, DollarSign, Receipt, FileText } from 'lucide-react'
+import { LayoutDashboard, Package, Receipt, FileText } from 'lucide-react'
 
 const navItems = [
   { to: '/accounting-inventory/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/accounting-inventory/inventory', icon: Package, label: 'Inventory' },
-  { to: '/accounting-inventory/sales', icon: DollarSign, label: 'Sales' },
   { to: '/accounting-inventory/expenses', icon: Receipt, label: 'Expenses' },
   { to: '/accounting-inventory/receipt', icon: FileText, label: 'Receipt' },
 ]

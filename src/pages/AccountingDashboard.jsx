@@ -1,40 +1,114 @@
-import AccountingHeader from '../components/accounting/AccountingHeader'
-import AccountingNavbar from '../components/accounting/AccountingNavbar'
-import WelcomeBanner from '../components/accounting/WelcomeBanner'
-import StatCard from '../components/accounting/StatCard'
+import { useState } from 'react'
+import { PhilippinePeso, Receipt, Package, AlertTriangle } from 'lucide-react'
+import ManagementShell from '../components/shell/ManagementShell'
+import WelcomeGradientBanner from '../components/dashboard-ui/WelcomeGradientBanner'
+import KpiStatCard from '../components/dashboard-ui/KpiStatCard'
+import PanelCard from '../components/dashboard-ui/PanelCard'
 import ModuleCard from '../components/accounting/ModuleCard'
 import RecentTransactions from '../components/accounting/RecentTransactions'
 import LowStockAlerts from '../components/accounting/LowStockAlerts'
-
-const stats = [
-  { title: 'Monthly Revenue', value: 'PHP 458,325.00', growth: '+12.5%', accentColor: 'green' },
-  { title: 'Monthly Expenses', value: 'PHP 125,450.00', growth: '-5.2%', accentColor: 'blue' },
-  { title: 'Net Profit', value: 'PHP 332,875.00', growth: '+18.3%', accentColor: 'purple' },
-  { title: 'Low Stock Items', value: '8', note: 'Needs attention', accentColor: 'orange', showTrend: false },
-]
+import { TrendLineChart, SalesBarChart, CategoryPieChart } from '../components/dashboard-ui/charts/DashboardCharts'
 
 export default function AccountingDashboard() {
+  const [range, setRange] = useState('30d')
+
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
-      <AccountingHeader />
-      <AccountingNavbar />
+    <ManagementShell
+      module="accounting"
+      portalSubtitle="Accounting & Inventory"
+      userName="Finance team"
+    >
+      <WelcomeGradientBanner
+        title="Accounting & inventory"
+        subtitle="Revenue, expenses, stock, and operational health."
+        icon={PhilippinePeso}
+      />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <WelcomeBanner />
-
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat) => (
-            <StatCard key={stat.title} {...stat} />
-          ))}
-        </section>
-
-        <ModuleCard />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecentTransactions />
-          <LowStockAlerts />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Filters apply to charts (demo data).
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="acct-range" className="sr-only">
+            Date range
+          </label>
+          <select
+            id="acct-range"
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+          <select
+            aria-label="Category"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            defaultValue="all"
+          >
+            <option value="all">All categories</option>
+            <option value="salon">Salon</option>
+            <option value="nail">Nail</option>
+            <option value="clinic">Clinic</option>
+          </select>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiStatCard
+          title="Total revenue"
+          value="PHP 458,325"
+          trend="+12.5% vs prior period"
+          trendTone="positive"
+          subtitle="Month to date"
+          icon={PhilippinePeso}
+        />
+        <KpiStatCard
+          title="Monthly expenses"
+          value="PHP 125,450"
+          trend="-5.2% vs prior"
+          trendTone="positive"
+          subtitle="Controlled spend"
+          icon={Receipt}
+        />
+        <KpiStatCard
+          title="Inventory value"
+          value="PHP 892,100"
+          trend="Stable"
+          trendTone="neutral"
+          subtitle="On-hand valuation"
+          icon={Package}
+        />
+        <KpiStatCard
+          title="Low stock alerts"
+          value="8"
+          trend="Needs reorder"
+          trendTone="neutral"
+          subtitle="SKUs below minimum"
+          icon={AlertTriangle}
+        />
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <PanelCard title="Revenue trend" description={`Range: ${range}`} className="lg:col-span-2">
+          <TrendLineChart title="" />
+        </PanelCard>
+        <PanelCard title="Category mix" description="Share of revenue">
+          <CategoryPieChart title="" />
+        </PanelCard>
+      </section>
+
+      <PanelCard title="Sales by channel" description="Compare performance">
+        <SalesBarChart title="" />
+      </PanelCard>
+
+      <ModuleCard />
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <RecentTransactions />
+        <LowStockAlerts />
+      </div>
+    </ManagementShell>
   )
 }

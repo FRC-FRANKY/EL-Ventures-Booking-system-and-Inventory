@@ -8,16 +8,18 @@ const activities = [
 
 export default function ActivityList() {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5 h-full">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Activity</h3>
-      <ul className="space-y-3">
+    <div className="h-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
+      <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-white">Recent activity</h3>
+      <ul className="space-y-1">
         {activities.map((item) => (
           <li
             key={item.id}
-            className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 py-2 border-b border-gray-100 last:border-0 text-sm"
+            className="flex flex-col gap-0.5 border-b border-slate-100 py-3 text-sm last:border-0 dark:border-slate-800 sm:flex-row sm:items-center sm:gap-2"
           >
-            <span className="text-gray-500 font-medium shrink-0">{item.time}</span>
-            <span className="text-gray-700">— {item.text}</span>
+            <span className="shrink-0 text-xs font-medium text-slate-500 dark:text-slate-400">
+              {item.time}
+            </span>
+            <span className="text-slate-700 dark:text-slate-200">— {item.text}</span>
           </li>
         ))}
       </ul>

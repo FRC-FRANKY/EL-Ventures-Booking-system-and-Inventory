@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Clock } from 'lucide-react'
-import Header from '../components/dashboard/Header'
-import Navbar from '../components/dashboard/Navbar'
-import WelcomeBanner from '../components/dashboard/WelcomeBanner'
-import StatsCards from '../components/dashboard/StatsCards'
-import QuickActions from '../components/dashboard/QuickActions'
+import { Clock, Calendar } from 'lucide-react'
+import ManagementShell from '../components/shell/ManagementShell'
+import WelcomeGradientBanner from '../components/dashboard-ui/WelcomeGradientBanner'
+import ReceptionistKpiRow from '../components/dashboard/ReceptionistKpiRow'
+import ReceptionistQuickActionsBar from '../components/dashboard/ReceptionistQuickActionsBar'
+import PanelCard from '../components/dashboard-ui/PanelCard'
+import VisitorLogPanel from '../components/dashboard-ui/VisitorLogPanel'
 import AppointmentsList from '../components/dashboard/AppointmentsList'
 import RecentCustomers from '../components/dashboard/RecentCustomers'
 import LoginHistoryModal from '../components/dashboard/LoginHistoryModal'
+import { useReceptionistSwitchRole } from '../hooks/useReceptionistSwitchRole'
 
 export default function ReceptionistDashboard() {
   const location = useLocation()
@@ -16,6 +18,7 @@ export default function ReceptionistDashboard() {
   const fullName = location.state?.fullName
   const branch = location.state?.branch || 'Mandaue City Branch'
   const [showLoginHistory, setShowLoginHistory] = useState(false)
+  const switchRole = useReceptionistSwitchRole()
 
   useEffect(() => {
     if (!fullName) {
@@ -23,40 +26,49 @@ export default function ReceptionistDashboard() {
     }
   }, [fullName, navigate])
 
+  const receptionistState = { fullName: fullName || 'Receptionist', branch }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header fullName={fullName || 'Receptionist'} />
-      <Navbar fullName={fullName || 'Receptionist'} branch={branch} />
+    <ManagementShell
+      module="receptionist"
+      portalSubtitle={`Receptionist · ${branch}`}
+      userName={fullName || 'Receptionist'}
+      receptionistState={receptionistState}
+      onSwitchRole={switchRole}
+    >
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setShowLoginHistory(true)}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900"
+        >
+          <Clock className="h-4 w-4" />
+          Login history
+        </button>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex-1 min-w-0" />
-          <button
-            type="button"
-            onClick={() => setShowLoginHistory(true)}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-          >
-            <Clock className="w-4 h-4" />
-            Login History
-          </button>
-        </div>
-        <WelcomeBanner fullName={fullName} />
+      <WelcomeGradientBanner
+        title={`Welcome, ${fullName || 'Receptionist'}`}
+        subtitle={branch}
+        icon={Calendar}
+      />
 
-        <section>
-          <StatsCards />
-        </section>
+      <ReceptionistKpiRow />
 
-        <QuickActions />
+      <ReceptionistQuickActionsBar fullName={fullName} branch={branch} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AppointmentsList />
-          <RecentCustomers />
-        </div>
-      </main>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <PanelCard title="Visitor log" description="Fast check-in for walk-ins and guests">
+          <VisitorLogPanel />
+        </PanelCard>
+        <AppointmentsList />
+      </div>
+
+      <RecentCustomers />
 
       {showLoginHistory && (
         <LoginHistoryModal onClose={() => setShowLoginHistory(false)} />
       )}
-    </div>
+    </ManagementShell>
   )
 }

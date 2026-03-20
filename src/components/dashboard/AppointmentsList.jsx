@@ -23,22 +23,22 @@ const appointments = [
 
 export default function AppointmentsList() {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5 h-full flex flex-col">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">
-        Today's Upcoming Appointments
+    <div className="flex h-full flex-col rounded-xl border border-slate-200/80 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
+      <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-white">
+        Today&apos;s upcoming appointments
       </h3>
       <ul className="space-y-4 flex-1">
         {appointments.map((apt) => (
           <li
             key={`${apt.time}-${apt.customer}`}
-            className="flex gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+            className="flex gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0 dark:border-slate-800"
           >
-            <span className="font-semibold text-purple-600 text-sm w-20 flex-shrink-0">
+            <span className="w-20 flex-shrink-0 text-sm font-semibold text-violet-600 dark:text-fuchsia-400">
               {apt.time}
             </span>
             <div>
-              <p className="font-medium text-gray-900">{apt.customer}</p>
-              <p className="text-sm text-gray-500">{apt.service}</p>
+              <p className="font-medium text-slate-900 dark:text-white">{apt.customer}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{apt.service}</p>
             </div>
           </li>
         ))}

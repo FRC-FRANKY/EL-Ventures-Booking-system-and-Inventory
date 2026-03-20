@@ -1,15 +1,12 @@
-import AccountingHeader from '../components/accounting/AccountingHeader'
-import AccountingNavbar from '../components/accounting/AccountingNavbar'
+import ManagementShell from '../components/shell/ManagementShell'
 
 export default function AccountingPlaceholder({ title }) {
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
-      <AccountingHeader />
-      <AccountingNavbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-        <p className="text-gray-500 mt-1">Content coming soon.</p>
-      </main>
-    </div>
+    <ManagementShell module="accounting" portalSubtitle={title} userName="Finance team">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-card dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h2>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Content coming soon.</p>
+      </div>
+    </ManagementShell>
   )
 }

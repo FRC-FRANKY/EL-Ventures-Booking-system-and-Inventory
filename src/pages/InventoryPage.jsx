@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import {
   Package,
   AlertTriangle,
-  DollarSign,
+  PhilippinePeso,
   Search,
   Plus,
   ChevronDown,
@@ -11,8 +11,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import AccountingHeader from '../components/accounting/AccountingHeader'
-import AccountingNavbar from '../components/accounting/AccountingNavbar'
+import ManagementShell from '../components/shell/ManagementShell'
 
 const CATEGORIES = ['All Categories', 'Clinic', 'Nail', 'Salon']
 const UNITS = ['All Units', 'Gram', 'Boxes', 'Pieces', 'Bottle']
@@ -323,11 +322,8 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
-      <AccountingHeader />
-      <AccountingNavbar />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <ManagementShell module="accounting" portalSubtitle="Inventory" userName="Finance team">
+      <div className="space-y-6">
         {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-l-gray-400">
@@ -454,11 +450,11 @@ export default function InventoryPage() {
             </table>
           </div>
         </div>
-      </main>
+      </div>
 
       {showAddModal && <AddItemModal onClose={() => setShowAddModal(false)} onAdd={handleAddItem} />}
       {deductItem && <DeductModal item={deductItem} onClose={() => setDeductItem(null)} onConfirm={(amount) => handleDeduct(deductItem, amount)} />}
       {editItem && <EditItemModal item={editItem} onClose={() => setEditItem(null)} onSave={handleSaveEdit} />}
-    </div>
+    </ManagementShell>
   )
 }

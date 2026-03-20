@@ -9,22 +9,22 @@ const stats = [
 
 export default function CustomerStatsCards() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => {
         const Icon = stat.icon
         return (
           <div
             key={stat.title}
-            className="bg-white rounded-xl shadow-sm p-5 transition-shadow hover:shadow-md"
+            className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-card backdrop-blur-sm transition hover:shadow-card-hover"
           >
-            <p className="text-sm font-medium text-gray-500">{stat.title}</p>
+            <p className="text-sm font-medium text-slate-600">{stat.title}</p>
             <div className="flex items-center gap-2 mt-2">
               {Icon && (
-                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-5 h-5 text-purple-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/15 via-fuchsia-500/15 to-sky-500/15">
+                  <Icon className="h-5 w-5 text-violet-700" />
                 </div>
               )}
-              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
             </div>
           </div>
         )

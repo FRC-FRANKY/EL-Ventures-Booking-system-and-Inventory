@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Clock, MessageCircle, Settings, Info, X, ChevronDown } from 'lucide-react'
-import AccountingHeader from '../components/accounting/AccountingHeader'
-import AccountingNavbar from '../components/accounting/AccountingNavbar'
+import ManagementShell from '../components/shell/ManagementShell'
 import CustomerForm from '../components/receipt/CustomerForm'
 import ShippingForm from '../components/receipt/ShippingForm'
 import PaymentSection from '../components/receipt/PaymentSection'
@@ -88,11 +87,8 @@ export default function ReceiptPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
-      <AccountingHeader />
-      <AccountingNavbar />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <ManagementShell module="accounting" portalSubtitle="Receipt" userName="Finance team">
+      <div className="space-y-6">
         {/* Receipt title bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900">
@@ -256,7 +252,7 @@ export default function ReceiptPage() {
             </button>
           </div>
         </footer>
-      </main>
-    </div>
+      </div>
+    </ManagementShell>
   )
 }

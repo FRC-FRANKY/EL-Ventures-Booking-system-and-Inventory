@@ -1,4 +1,4 @@
-import { DollarSign } from 'lucide-react'
+import { PhilippinePeso } from 'lucide-react'
 
 const formatDate = (date) =>
   date.toLocaleDateString('en-US', {
@@ -20,7 +20,7 @@ export default function WelcomeBanner() {
         </p>
       </div>
       <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 flex items-center justify-center">
-        <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
+        <PhilippinePeso className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
       </div>
     </div>
   )

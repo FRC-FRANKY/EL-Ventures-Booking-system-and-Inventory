@@ -27,7 +27,6 @@ function App() {
       <Route path="/hr-manager/daily-report" element={<HRManagerDailyReport />} />
       <Route path="/accounting-inventory/dashboard" element={<AccountingDashboard />} />
       <Route path="/accounting-inventory/inventory" element={<InventoryPage />} />
-      <Route path="/accounting-inventory/sales" element={<AccountingPlaceholder title="Sales" />} />
       <Route path="/accounting-inventory/expenses" element={<AccountingPlaceholder title="Expenses" />} />
       <Route path="/accounting-inventory/receipt" element={<ReceiptPage />} />
     </Routes>

@@ -1,415 +1,400 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import '../css/pages/Login.css'
-import { auth, db } from '../firebase'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Briefcase,
+  Calculator,
+  Eye,
+  EyeOff,
+  Lock,
+  UsersRound,
+  UserRound,
+} from 'lucide-react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { ref, get } from 'firebase/database'
+import { auth, db } from '../firebase'
+import LoginCard from '../components/auth/LoginCard'
+import InputField from '../components/auth/InputField'
+import AnimatedButton from '../components/auth/AnimatedButton'
 
-const ROLE_LABELS = {
-  'hr-manager': 'HR Manager',
-  receptionist: 'Receptionist',
-  'accounting-inventory': 'Accounting & Inventory',
+const ROLE_THEMES = {
+  receptionist: {
+    label: 'Receptionist',
+    icon: UsersRound,
+    cardIcon: 'from-[#C2185B] to-[#EC407A]',
+    button: 'bg-gradient-to-r from-[#C2185B] to-[#EC407A]',
+    focusBorder: 'focus:border-pink-500',
+    focusRing: 'focus:ring-pink-500/30',
+  },
+  'hr-manager': {
+    label: 'HR Manager',
+    icon: Briefcase,
+    cardIcon: 'from-[#9C1B5A] to-[#C2185B]',
+    button: 'bg-gradient-to-r from-[#9C1B5A] to-[#C2185B]',
+    focusBorder: 'focus:border-pink-500',
+    focusRing: 'focus:ring-pink-500/30',
+  },
+  'accounting-inventory': {
+    label: 'Accounting & Inventory',
+    icon: Calculator,
+    cardIcon: 'from-[#D81B60] to-[#EC407A]',
+    button: 'bg-gradient-to-r from-[#D81B60] to-[#EC407A]',
+    focusBorder: 'focus:border-pink-500',
+    focusRing: 'focus:ring-pink-500/30',
+  },
 }
+
+const SHARED_PAGE_GRADIENT =
+  'from-[#C2185B] via-[#EC407A] to-[#F8BBD0]'
 
 const DEMO_CREDENTIALS = {
   'hr-manager': { username: 'hrteam.el@gmail.com', password: 'position_hr' },
-  'accounting-inventory': { username: 'account&inveteam.el@gmail.com', password: 'position_account&inve' },
-}
-
-function UserIcon() {
-  return (
-    <svg className="login-input__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-    </svg>
-  )
-}
-
-function LockIcon() {
-  return (
-    <svg className="login-input__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  )
-}
-
-function EyeIcon() {
-  return (
-    <svg className="login-input__toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  )
-}
-
-function EyeOffIcon() {
-  return (
-    <svg className="login-input__toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.11-5.11" />
-      <path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-.88" />
-      <path d="M1 1l22 22" />
-    </svg>
-  )
-}
-
-function ArrowRightIcon() {
-  return (
-    <svg className="login-btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M5 12h14M12 5l7 7-7 7" />
-    </svg>
-  )
-}
-
-function UserSymbolIcon() {
-  return (
-    <svg className="login-card__role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-    </svg>
-  )
-}
-
-function DollarIcon() {
-  return (
-    <svg className="login-card__role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="12" y1="2" x2="12" y2="22" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  )
+  'accounting-inventory': {
+    username: 'account&inveteam.el@gmail.com',
+    password: 'position_account&inve',
+  },
 }
 
 export default function Login() {
   const { role } = useParams()
   const navigate = useNavigate()
-  const roleLabel = ROLE_LABELS[role] || role
-  const isReceptionist = role === 'receptionist'
-  const isHrManager = role === 'hr-manager'
-  const isAccounting = role === 'accounting-inventory'
+  const theme = ROLE_THEMES[role]
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [shakeKey, setShakeKey] = useState(0)
+  const [focusedField, setFocusedField] = useState('')
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => ({
+        id: i,
+        size: 8 + i * 2,
+        left: `${8 + i * 14}%`,
+        top: `${10 + (i % 4) * 18}%`,
+        delay: i * 0.35,
+        duration: 4.6 + i * 0.35,
+      })),
+    []
+  )
+
+  const isReceptionist = role === 'receptionist'
+  const isHrManager = role === 'hr-manager'
+  const isAccounting = role === 'accounting-inventory'
+
+  const usernameLabel = isReceptionist ? 'Email' : 'Username'
+  const usernameType = isReceptionist ? 'email' : 'text'
+
+  const triggerError = (message) => {
+    setError(message)
+    setShakeKey((prev) => prev + 1)
+  }
+
+  const navigateWithSuccess = (path, state) => {
+    setIsSuccess(true)
+    setTimeout(() => navigate(path, { state }), 420)
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
     setError('')
 
     const trimmedUsername = username.trim()
     const trimmedPassword = password.trim()
+
     if (!trimmedUsername || !trimmedPassword) {
-      setError('Please enter both username and password.')
+      triggerError(
+        isReceptionist
+          ? 'Please enter both email and password.'
+          : 'Please enter both username and password.'
+      )
       return
     }
 
-    if (isReceptionist) {
-      if (!trimmedUsername || !trimmedPassword) {
-        setError('Please enter both email and password.')
+    if (!theme) {
+      triggerError('Login for this role is not configured yet.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      if (isReceptionist) {
+        const credential = await signInWithEmailAndPassword(
+          auth,
+          trimmedUsername,
+          trimmedPassword
+        )
+        const uid = credential.user.uid
+
+        let branch = 'Mandaue City Branch'
+        let usernameForWelcome = trimmedUsername.split('@')[0]
+
+        try {
+          const snap = await get(ref(db, `receptionists/${uid}`))
+          if (snap.exists()) {
+            const profile = snap.val()
+            if (profile.branch) branch = profile.branch
+            if (profile.username) usernameForWelcome = profile.username
+          }
+        } catch {
+          // keep default values when profile fetch fails
+        }
+
+        navigateWithSuccess('/receptionist/welcome', {
+          username: usernameForWelcome,
+          branch,
+        })
         return
       }
 
-      setLoading(true)
-      signInWithEmailAndPassword(auth, trimmedUsername, trimmedPassword)
-        .then(async (cred) => {
-          const uid = cred.user.uid
-          let branch = 'Mandaue City Branch'
-          let usernameForWelcome = ''
-
-          try {
-            const snap = await get(ref(db, `receptionists/${uid}`))
-            if (snap.exists()) {
-              const data = snap.val()
-              if (data.branch) branch = data.branch
-              if (data.username) usernameForWelcome = data.username
-            }
-          } catch {
-            // ignore profile load errors, use defaults
-          }
-
-          if (!usernameForWelcome) {
-            usernameForWelcome = trimmedUsername.split('@')[0]
-          }
-
-          navigate('/receptionist/welcome', {
-            state: { username: usernameForWelcome, branch },
+      if (isHrManager) {
+        const demo = DEMO_CREDENTIALS['hr-manager']
+        if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
+          navigateWithSuccess('/hr-manager/dashboard', {
+            fullName: 'HR Recel Orcales',
           })
-        })
-        .catch(() => {
-          setError('Invalid email or password. Please try again.')
-        })
-        .finally(() => {
-          setLoading(false)
-        })
-
-      return
-    }
-
-    if (isHrManager) {
-      const demo = DEMO_CREDENTIALS['hr-manager']
-      if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
-        navigate('/hr-manager/dashboard', { state: { fullName: 'HR Recel Orcales' } })
+          return
+        }
+        triggerError('Invalid username or password. Please try again.')
         return
       }
-      setError('Invalid username or password. Please try again.')
-      return
-    }
 
-    if (isAccounting) {
-      const demo = DEMO_CREDENTIALS['accounting-inventory']
-      if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
-        navigate('/accounting-inventory/dashboard', { state: { username: trimmedUsername } })
+      if (isAccounting) {
+        const demo = DEMO_CREDENTIALS['accounting-inventory']
+        if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
+          navigateWithSuccess('/accounting-inventory/dashboard', {
+            username: trimmedUsername,
+          })
+          return
+        }
+        triggerError('Invalid username or password. Please try again.')
         return
       }
-      setError('Invalid username or password. Please try again.')
-      return
+    } catch {
+      triggerError(
+        isReceptionist
+          ? 'Invalid email or password. Please try again.'
+          : 'Unable to sign in right now. Please try again.'
+      )
+    } finally {
+      setLoading(false)
     }
-
-    setError('Login for this role is not configured yet.')
   }
 
-  if (isReceptionist) {
+  if (!theme) {
     return (
-      <div className="login-page login-page--receptionist">
-        <Link to="/" className="login-page__back-link">
-          <span className="login-page__back-arrow">←</span> Back to Role Selection
-        </Link>
-
-        <div className="login-card">
-          <div className="login-card__icon-wrap">
-            <UserSymbolIcon />
-          </div>
-          <h1 className="login-card__title">Receptionist Login</h1>
-          <p className="login-card__subtitle">Enter your credentials to access the receptionist portal</p>
-
-          <form className="login-form" onSubmit={handleSubmit} noValidate>
-            {error && (
-              <div className="login-form__error" role="alert">
-                {error}
-              </div>
-            )}
-
-            <label className="login-form__label" htmlFor="login-username">
-              Email
-            </label>
-            <div className="login-input-wrap">
-              <UserIcon />
-              <input
-                id="login-username"
-                type="email"
-                className="login-input"
-                placeholder="Enter your email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="email"
-                autoFocus
-              />
-            </div>
-
-            <label className="login-form__label" htmlFor="login-password">
-              Password
-            </label>
-            <div className="login-input-wrap">
-              <LockIcon />
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                className="login-input"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="login-input__toggle"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-
-            <button type="submit" className="login-btn" disabled={loading}>
-              <span>{loading ? 'Logging in…' : 'Login'}</span>
-              {!loading && <ArrowRightIcon />}
-            </button>
-
-            <button
-              type="button"
-              className="login-btn login-btn--secondary"
-              onClick={() => navigate('/receptionist/signup')}
-            >
-              Create Receptionist Account
-            </button>
-          </form>
+      <main className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
+        <div className="rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-md">
+          Unknown role. Please go back and choose a valid role.
         </div>
-      </div>
+      </main>
     )
   }
 
-  if (isHrManager) {
-    return (
-      <div className="login-page login-page--hr">
-        <Link to="/" className="login-page__back-link">
-          <span className="login-page__back-arrow">←</span> Back to Role Selection
-        </Link>
-
-        <div className="login-card">
-          <div className="login-card__icon-wrap login-card__icon-wrap--purple">
-            <UserSymbolIcon />
-          </div>
-          <h1 className="login-card__title">HR Manager Login</h1>
-          <p className="login-card__subtitle">Enter your credentials to access the HR management portal.</p>
-
-          <form className="login-form" onSubmit={handleSubmit} noValidate>
-            {error && (
-              <div className="login-form__error" role="alert">
-                {error}
-              </div>
-            )}
-
-            <label className="login-form__label" htmlFor="hr-login-username">
-              Username
-            </label>
-            <div className="login-input-wrap">
-              <UserIcon />
-              <input
-                id="hr-login-username"
-                type="text"
-                className="login-input"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
-                autoFocus
-              />
-            </div>
-
-            <label className="login-form__label" htmlFor="hr-login-password">
-              Password
-            </label>
-            <div className="login-input-wrap">
-              <LockIcon />
-              <input
-                id="hr-login-password"
-                type={showPassword ? 'text' : 'password'}
-                className="login-input"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="login-input__toggle"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-
-            <button type="submit" className="login-btn login-btn--purple">
-              <span>Login</span>
-              <ArrowRightIcon />
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
-
-  if (isAccounting) {
-    return (
-      <div className="login-page login-page--accounting">
-        <Link to="/" className="login-page__back-link">
-          <span className="login-page__back-arrow">←</span> Back to Role Selection
-        </Link>
-
-        <div className="login-card login-card--max-md">
-          <div className="login-card__icon-wrap login-card__icon-wrap--purple-gradient">
-            <DollarIcon />
-          </div>
-          <h1 className="login-card__title">Accounting & Inventory Login</h1>
-          <p className="login-card__subtitle">Enter your credentials to access the Accounting & Inventory portal.</p>
-
-          <form className="login-form" onSubmit={handleSubmit} noValidate>
-            {error && (
-              <div className="login-form__error" role="alert">
-                {error}
-              </div>
-            )}
-
-            <label className="login-form__label" htmlFor="accounting-login-username">
-              Username
-            </label>
-            <div className="login-input-wrap">
-              <UserIcon />
-              <input
-                id="accounting-login-username"
-                type="text"
-                className="login-input"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                autoComplete="username"
-                autoFocus
-              />
-            </div>
-
-            <label className="login-form__label" htmlFor="accounting-login-password">
-              Password
-            </label>
-            <div className="login-input-wrap">
-              <LockIcon />
-              <input
-                id="accounting-login-password"
-                type={showPassword ? 'text' : 'password'}
-                className="login-input"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="login-input__toggle"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-
-            <button type="submit" className="login-btn login-btn--purple-gradient">
-              <span>Login</span>
-              <ArrowRightIcon />
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
+  const RoleIcon = theme.icon
 
   return (
-    <div className="login-page">
-      <div className="login-page__card">
-        <button
-          type="button"
-          className="login-page__back"
-          onClick={() => navigate('/')}
-          aria-label="Back to role selection"
+    <main
+      className={`relative min-h-screen overflow-hidden bg-gradient-to-br ${SHARED_PAGE_GRADIENT} px-4 py-8 sm:px-6`}
+    >
+      <motion.div
+        aria-hidden="true"
+        animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+        transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+        className="absolute inset-0 opacity-40"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 12% 20%, rgba(255,255,255,0.24), transparent 35%), radial-gradient(circle at 82% 14%, rgba(236,64,122,0.40), transparent 34%), radial-gradient(circle at 44% 90%, rgba(194,24,91,0.30), transparent 36%)',
+          backgroundSize: '145% 145%',
+        }}
+      />
+
+      {particles.map((particle) => (
+        <motion.span
+          key={particle.id}
+          aria-hidden="true"
+          className="absolute rounded-full bg-pink-100/35 blur-[1px]"
+          style={{
+            width: particle.size,
+            height: particle.size,
+            left: particle.left,
+            top: particle.top,
+          }}
+          animate={{ y: [0, -14, 0], opacity: [0.2, 0.45, 0.2] }}
+          transition={{
+            duration: particle.duration,
+            repeat: Infinity,
+            delay: particle.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      <section className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 w-full max-w-md"
         >
-          ← Back
-        </button>
-        <h1 className="login-page__title">EL Ventures Incorporated</h1>
-        <h2 className="login-page__role">{roleLabel} Login</h2>
-        <p className="login-page__placeholder">
-          Login form for {roleLabel} will be implemented here.
-        </p>
-      </div>
-    </div>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/20 px-4 py-2 text-sm font-medium text-pink-50 transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Role Selection
+          </Link>
+        </motion.div>
+
+        <LoginCard
+          roleName={theme.label}
+          title={`${theme.label} Login`}
+          subtitle="Sign in to access your EL Ventures workspace."
+          icon={RoleIcon}
+          iconGradientClass={theme.cardIcon}
+        >
+          <motion.form
+            key={shakeKey}
+            animate={error ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }}
+            transition={{ duration: 0.36 }}
+            onSubmit={handleSubmit}
+            className="space-y-4"
+            noValidate
+          >
+            <InputField
+              id={`${role}-username`}
+              label={usernameLabel}
+              type={usernameType}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              icon={UserRound}
+              placeholder={isReceptionist ? 'name@elventures.com' : 'Enter your username'}
+              autoComplete={isReceptionist ? 'email' : 'username'}
+              autoFocus
+              focused={focusedField === 'username'}
+              onFocus={() => setFocusedField('username')}
+              onBlur={() => setFocusedField('')}
+              theme={{
+                inputBorder: 'border-white/30',
+                inputFocusBorder: theme.focusBorder,
+                inputFocusRing: theme.focusRing,
+              }}
+            />
+
+            <InputField
+              id={`${role}-password`}
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              icon={Lock}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              focused={focusedField === 'password'}
+              onFocus={() => setFocusedField('password')}
+              onBlur={() => setFocusedField('')}
+              theme={{
+                inputBorder: 'border-white/30',
+                inputFocusBorder: theme.focusBorder,
+                inputFocusRing: theme.focusRing,
+              }}
+              rightElement={
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="rounded-md p-1 text-slate-500 transition hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span
+                      key={showPassword ? 'hide' : 'show'}
+                      initial={{ opacity: 0, rotate: -20, scale: 0.9 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      exit={{ opacity: 0, rotate: 20, scale: 0.9 }}
+                      transition={{ duration: 0.15 }}
+                      className="inline-flex"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.button>
+              }
+            />
+
+            <AnimatePresence>
+              {error ? (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="rounded-lg border border-rose-300/35 bg-rose-500/15 px-3 py-2 text-sm text-rose-100"
+                  role="alert"
+                >
+                  {error}
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+
+            <AnimatedButton
+              type="submit"
+              loading={loading}
+              disabled={loading}
+              gradientClass={theme.button}
+              icon={ArrowRight}
+            >
+              Login
+            </AnimatedButton>
+
+            {isReceptionist ? (
+              <motion.button
+                type="button"
+                onClick={() => navigate('/receptionist/signup')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full rounded-xl border border-white/30 bg-white/15 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              >
+                Create Receptionist Account
+              </motion.button>
+            ) : null}
+          </motion.form>
+        </LoginCard>
+      </section>
+
+      <AnimatePresence>
+        {isSuccess ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="rounded-2xl border border-white/20 bg-white/15 px-6 py-5 text-center text-white"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ duration: 0.6, repeat: Infinity }}
+                className="mx-auto mb-2 h-6 w-6 rounded-full border-2 border-white/50 border-t-white"
+              />
+              Redirecting...
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </main>
   )
 }

@@ -3,6 +3,7 @@ import {
   ref,
   push,
   set,
+  update,
   get,
   onValue,
   query,
@@ -40,23 +41,92 @@ export function listenToBranchAppointments(branchName, callback, onError) {
     orderByChild('branchName'),
     equalTo(branchName)
   )
+  const branchAppointmentsRef = ref(db, `branches/${branchName}/appointments`)
 
-  return onValue(
+  let rootList = []
+  let branchList = []
+
+  const hasAnyNumericPrice = (services) => {
+    if (!services) return false
+    if (Array.isArray(services)) return services.some((item) => hasAnyNumericPrice(item))
+    if (typeof services === 'object') {
+      const direct = services.price ?? services.amount ?? services.total ?? services.servicePrice
+      if (direct != null) {
+        const n = Number(String(direct).replace(/[^\d.\-]/g, ''))
+        if (Number.isFinite(n) && n > 0) return true
+      }
+      return Object.values(services).some((value) => hasAnyNumericPrice(value))
+    }
+    const n = Number(String(services).replace(/[^\d.\-]/g, ''))
+    return Number.isFinite(n) && n > 0
+  }
+
+  const emitMerged = () => {
+    const merged = new Map()
+
+    // Start from root appointments.
+    for (const item of rootList) {
+      merged.set(item.id, item)
+    }
+
+    // Branch appointments should override root fields (especially status/services).
+    for (const item of branchList) {
+      const current = merged.get(item.id) || {}
+      const mergedItem = { ...current, ...item, id: item.id }
+
+      // If branch mirror has services but without prices, preserve priced root services.
+      if (
+        current?.services != null &&
+        item?.services != null &&
+        !hasAnyNumericPrice(item.services)
+      ) {
+        mergedItem.services = current.services
+      }
+
+      merged.set(item.id, mergedItem)
+    }
+
+    callback(Array.from(merged.values()))
+  }
+
+  const unsubRoot = onValue(
     branchQuery,
     (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val()
-        const list = Object.entries(data).map(([id, val]) => ({ id, ...val }))
-        callback(list)
+        rootList = Object.entries(data).map(([id, val]) => ({ id, ...val }))
       } else {
-        callback([])
+        rootList = []
       }
+      emitMerged()
     },
     (error) => {
       console.error('Firebase read error:', error.message)
       if (onError) onError(error)
     }
   )
+
+  const unsubBranch = onValue(
+    branchAppointmentsRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val()
+        branchList = Object.entries(data).map(([id, val]) => ({ id, ...val }))
+      } else {
+        branchList = []
+      }
+      emitMerged()
+    },
+    (error) => {
+      console.error('Firebase branch read error:', error.message)
+      if (onError) onError(error)
+    }
+  )
+
+  return () => {
+    unsubRoot()
+    unsubBranch()
+  }
 }
 
 export function listenToBranchCustomers(branchId, callback, onError) {
@@ -120,6 +190,54 @@ export async function acceptAppointment(branchId, appointmentId, appointmentData
     status: 'accepted',
     acceptedAt: Date.now(),
   })
+}
+
+export async function updateAppointmentStatus(appointmentId, status, branchId) {
+  const payload = { status: String(status).toLowerCase() }
+  const rootPath = ref(db, `appointments/${appointmentId}`)
+
+  try {
+    await update(rootPath, payload)
+    return
+  } catch (error) {
+    if (!branchId) throw error
+    const branchPath = ref(db, `branches/${branchId}/appointments/${appointmentId}`)
+    await update(branchPath, payload)
+  }
+}
+
+export async function updateAppointmentDetails(appointmentId, payload, branchId) {
+  const rootPath = ref(db, `appointments/${appointmentId}`)
+  try {
+    await update(rootPath, payload)
+    return
+  } catch (error) {
+    if (!branchId) throw error
+    const branchPath = ref(db, `branches/${branchId}/appointments/${appointmentId}`)
+    await update(branchPath, payload)
+  }
+}
+
+export function listenToServicesCatalog(callback, onError) {
+  const servicesRef = ref(db, 'services')
+
+  return onValue(
+    servicesRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback([])
+        return
+      }
+
+      const raw = snapshot.val()
+      const list = Object.entries(raw).map(([id, value]) => ({ id, ...value }))
+      callback(list)
+    },
+    (error) => {
+      console.error('Firebase services read error:', error.message)
+      if (onError) onError(error)
+    }
+  )
 }
 
 // ─── SAFE LISTENER (with permission error handling) ──────────────────

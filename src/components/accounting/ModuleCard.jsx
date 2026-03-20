@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Package, DollarSign, Receipt, FileText } from 'lucide-react'
+import { Package, Receipt, FileText } from 'lucide-react'
 
 const modules = [
   {
@@ -8,13 +8,6 @@ const modules = [
     icon: Package,
     color: 'bg-blue-500',
     path: '/accounting-inventory/inventory',
-  },
-  {
-    title: 'Sales',
-    description: 'Track revenue performance',
-    icon: DollarSign,
-    color: 'bg-green-500',
-    path: '/accounting-inventory/sales',
   },
   {
     title: 'Expenses',
@@ -38,7 +31,7 @@ export default function ModuleCard() {
   return (
     <section>
       <h3 className="text-lg font-bold text-gray-900 mb-4">Management Modules</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {modules.map((mod) => {
           const Icon = mod.icon
           return (

@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
-import Header from '../components/Header'
-import Navbar from '../components/Navbar'
+import { useLocation } from 'react-router-dom'
+import ManagementShell from '../components/shell/ManagementShell'
 import ReportFilters from '../components/report/ReportFilters'
 import ReportHeader from '../components/report/ReportHeader'
 import CustomerActivity from '../components/report/CustomerActivity'
@@ -51,10 +51,13 @@ function groupByDate(entries) {
     if (!byDate[e.date]) byDate[e.date] = []
     byDate[e.date].push(e)
   })
-  return Object.entries(byDate).map(([date, entries]) => ({ date, entries }))
+  return Object.entries(byDate).map(([date, ent]) => ({ date, entries: ent }))
 }
 
 export default function HRManagerDailyReport() {
+  const location = useLocation()
+  const displayName = location.state?.fullName || 'HR Recel Orcales'
+
   const [commissionData, setCommissionData] = useState(INITIAL_COMMISSION_DATA)
   const [editingEntry, setEditingEntry] = useState(null)
   const [stylistFilter, setStylistFilter] = useState('All Stylists')
@@ -131,11 +134,8 @@ export default function HRManagerDailyReport() {
   }, [reportDate, branch, stylistFilter, dateFilter, serviceSearch, summary, filteredFlat])
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
-      <Header />
-      <Navbar />
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <ManagementShell module="hr" portalSubtitle="HR Manager · Reports" userName={displayName}>
+      <div className="space-y-6">
         <ReportFilters
           reportDate={reportDate}
           branch={branch}
@@ -146,7 +146,7 @@ export default function HRManagerDailyReport() {
         />
         <ReportHeader branch={branch} reportDate={reportDate} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="space-y-6">
             <CustomerActivity />
             <TransactionBreakdown />
@@ -170,7 +170,7 @@ export default function HRManagerDailyReport() {
           totalCommission={`PHP ${summary.commission.toFixed(2)}`}
         />
         <CommissionReport data={filteredGrouped} onEditRate={handleEditRate} />
-      </main>
+      </div>
 
       {editingEntry && (
         <EditCommissionRateModal
@@ -179,6 +179,6 @@ export default function HRManagerDailyReport() {
           onSave={handleSaveCommission}
         />
       )}
-    </div>
+    </ManagementShell>
   )
 }
