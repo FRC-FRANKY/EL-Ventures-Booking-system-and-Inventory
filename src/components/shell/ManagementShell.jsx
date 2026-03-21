@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   Menu,
   X,
@@ -20,6 +20,7 @@ export default function ManagementShell({
   children,
 }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [moduleOpen, setModuleOpen] = useState(false)
@@ -41,6 +42,18 @@ export default function ManagementShell({
   }
 
   useEffect(() => {
+    const media = window.matchMedia('(min-width: 1024px)')
+    const syncSidebar = () => setSidebarOpen(media.matches)
+    syncSidebar()
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', syncSidebar)
+      return () => media.removeEventListener('change', syncSidebar)
+    }
+    media.addListener(syncSidebar)
+    return () => media.removeListener(syncSidebar)
+  }, [])
+
+  useEffect(() => {
     function onDocClick(e) {
       if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false)
       if (moduleRef.current && !moduleRef.current.contains(e.target)) setModuleOpen(false)
@@ -49,6 +62,10 @@ export default function ManagementShell({
     document.addEventListener('click', onDocClick)
     return () => document.removeEventListener('click', onDocClick)
   }, [])
+
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
 
   const linkClass = ({ isActive }) =>
     [
@@ -65,7 +82,7 @@ export default function ManagementShell({
         <button
           type="button"
           aria-label="Close menu"
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       ) : null}
@@ -74,7 +91,7 @@ export default function ManagementShell({
       <aside
         className={[
           'fixed inset-y-0 left-0 z-50 w-60 border-r border-slate-200/80 bg-white transition-transform duration-200 dark:border-slate-800 dark:bg-slate-900',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         ].join(' ')}
       >
         <div className="flex h-14 items-center gap-2 border-b border-slate-200/80 px-4 dark:border-slate-800">
@@ -91,7 +108,7 @@ export default function ManagementShell({
           </div>
           <button
             type="button"
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800"
+            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
           >
@@ -129,14 +146,19 @@ export default function ManagementShell({
       </aside>
 
       {/* Top bar */}
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200/80 bg-white/90 px-3 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90 lg:pl-[calc(15rem+0.75rem)] lg:pr-6">
+      <header
+        className={[
+          'sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200/80 bg-white/90 px-3 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90',
+          sidebarOpen ? 'lg:pl-[calc(15rem+0.75rem)] lg:pr-6' : 'lg:px-6',
+        ].join(' ')}
+      >
         <button
           type="button"
-          className="inline-flex rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open menu"
+          className="inline-flex rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          onClick={() => setSidebarOpen((prev) => !prev)}
+          aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
         >
-          <Menu className="h-5 w-5" />
+          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
         <div className="hidden min-w-0 flex-1 lg:block">
@@ -245,7 +267,7 @@ export default function ManagementShell({
         </div>
       </header>
 
-      <main className="lg:pl-60">
+      <main className={sidebarOpen ? 'lg:pl-60' : ''}>
         <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">{children}</div>
       </main>
     </div>

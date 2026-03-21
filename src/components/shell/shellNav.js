@@ -5,6 +5,7 @@ import {
   Users,
   Package,
   Receipt,
+  Wallet,
 } from 'lucide-react'
 
 /**
@@ -19,6 +20,7 @@ export function getSidebarNav(module, receptionistState) {
       return [
         { to: '/hr-manager/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
         { to: '/hr-manager/daily-report', label: 'Reports', icon: FileText },
+        { to: '/hr-manager/payroll', label: 'Payroll', icon: Wallet },
       ]
     case 'receptionist':
       return [

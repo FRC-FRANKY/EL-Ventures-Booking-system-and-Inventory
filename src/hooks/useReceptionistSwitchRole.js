@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ref, get, update } from 'firebase/database'
-import { auth, db } from '../firebase'
+import { auth } from '../firebase'
+import { updateLoginHistorySession } from '../utils/firebaseHelpers'
 
 function formatDuration(startMs, endMs) {
   if (!startMs || !endMs || endMs <= startMs) return '—'
@@ -21,10 +21,14 @@ export function useReceptionistSwitchRole() {
     try {
       const user = auth.currentUser
       const sessionId = localStorage.getItem('currentReceptionistSessionId')
+      const basePath = localStorage.getItem('currentReceptionistSessionBasePath') || ''
+      const startedAtRaw = localStorage.getItem('currentReceptionistSessionStartedAtMs')
+      const startedAtMs = startedAtRaw ? Number(startedAtRaw) : 0
+      const branchFromPath = basePath.startsWith('branches/')
+        ? basePath.split('/')[1] || ''
+        : ''
 
       if (user && sessionId) {
-        const sessionRef = ref(db, `loginHistory/${user.uid}/${sessionId}`)
-        const snap = await get(sessionRef)
         const now = new Date()
         const logoutAt = now.toLocaleString('en-US', {
           month: 'short',
@@ -36,16 +40,24 @@ export function useReceptionistSwitchRole() {
         })
 
         let duration = '—'
-        if (snap.exists() && snap.val().startedAtMs) {
-          duration = formatDuration(snap.val().startedAtMs, now.getTime())
+        if (startedAtMs > 0) {
+          duration = formatDuration(startedAtMs, now.getTime())
         }
-
-        await update(sessionRef, {
-          logoutAt,
-          duration,
-        })
+        await updateLoginHistorySession(
+          user.uid,
+          sessionId,
+          {
+            logoutAt,
+            duration,
+            endedAtMs: now.getTime(),
+          },
+          branchFromPath,
+          basePath
+        )
 
         localStorage.removeItem('currentReceptionistSessionId')
+        localStorage.removeItem('currentReceptionistSessionBasePath')
+        localStorage.removeItem('currentReceptionistSessionStartedAtMs')
       }
     } catch {
       // ignore

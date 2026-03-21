@@ -8,6 +8,7 @@ import ReceptionistAppointments from './pages/ReceptionistAppointments'
 import ReceptionistCustomers from './pages/ReceptionistCustomers'
 import HRManagerDashboard from './pages/HRManagerDashboard'
 import HRManagerDailyReport from './pages/HRManagerDailyReport'
+import HRManagerPayroll from './pages/HRManagerPayroll'
 import AccountingDashboard from './pages/AccountingDashboard'
 import AccountingPlaceholder from './pages/AccountingPlaceholder'
 import InventoryPage from './pages/InventoryPage'
@@ -25,6 +26,7 @@ function App() {
       <Route path="/receptionist/customers" element={<ReceptionistCustomers />} />
       <Route path="/hr-manager/dashboard" element={<HRManagerDashboard />} />
       <Route path="/hr-manager/daily-report" element={<HRManagerDailyReport />} />
+      <Route path="/hr-manager/payroll" element={<HRManagerPayroll />} />
       <Route path="/accounting-inventory/dashboard" element={<AccountingDashboard />} />
       <Route path="/accounting-inventory/inventory" element={<InventoryPage />} />
       <Route path="/accounting-inventory/expenses" element={<AccountingPlaceholder title="Expenses" />} />

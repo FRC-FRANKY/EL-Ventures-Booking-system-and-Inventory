@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Sparkles, UserRound } from 'lucide-react'
-import { auth, db } from '../firebase'
-import { ref, push } from 'firebase/database'
+import { auth } from '../firebase'
+import { createLoginHistorySession } from '../utils/firebaseHelpers'
 
 export default function ReceptionistWelcome() {
   const navigate = useNavigate()
@@ -61,8 +61,9 @@ export default function ReceptionistWelcome() {
         hour12: true,
       })
 
-      const historyRef = ref(db, `loginHistory/${user.uid}`)
-      const newEntryRef = await push(historyRef, {
+      const result = await createLoginHistorySession(
+        user.uid,
+        {
         fullName: trimmed,
         username,
         branch,
@@ -70,9 +71,14 @@ export default function ReceptionistWelcome() {
         logoutAt: '—',
         duration: '—',
         startedAtMs: now.getTime(),
-      })
+        },
+        branch
+      )
 
-      localStorage.setItem('currentReceptionistSessionId', newEntryRef.key)
+      localStorage.setItem('currentReceptionistSessionId', result.sessionId)
+      localStorage.setItem('currentReceptionistSessionBasePath', result.basePath)
+      localStorage.setItem('currentReceptionistSessionStartedAtMs', String(now.getTime()))
+      localStorage.setItem('currentReceptionistLoginUid', user.uid)
     } catch {
       // ignore errors saving history
     } finally {
