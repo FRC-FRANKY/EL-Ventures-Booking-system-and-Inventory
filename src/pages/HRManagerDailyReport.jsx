@@ -58,7 +58,7 @@ export default function HRManagerDailyReport() {
   const [selectedBranch, setSelectedBranch] = useState('Mandaue City Branch')
   const [stylistsByRole, setStylistsByRole] = useState([])
   const knownBranches = useMemo(
-    () => ['Mandaue City Branch', 'Mandaue Branch', 'Pusok Branch', 'Pajac Branch', 'Cebu City Branch'],
+    () => ['Mandaue City Branch', 'Pusok Branch', 'Pajac Branch', 'Cebu City Branch'],
     []
   )
 
