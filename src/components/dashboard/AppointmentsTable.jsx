@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import AppointmentRow from './AppointmentRow'
 import {
+  extractStylistsFromAppointment,
   listenToBranchAppointments,
   listenToServicesCatalog,
   updateAppointmentDetails,
@@ -219,6 +220,43 @@ function sumServicesPrice(servicesPayload) {
   }, 0)
 }
 
+function normalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function inferServiceBucket(serviceName) {
+  const s = normalizeText(serviceName)
+  if (s.includes('manicure') || s.includes('pedicure') || s.includes('nail')) return 'nail'
+  if (s.includes('massage') || s.includes('facial') || s.includes('spa')) return 'facial-massage'
+  if (s.includes('beard') || s.includes('fade') || s.includes('clipper')) return 'barber'
+  if (
+    s.includes('hair') ||
+    s.includes('color') ||
+    s.includes('treatment') ||
+    s.includes('rebond') ||
+    s.includes('blow')
+  ) {
+    return 'hair'
+  }
+  return 'other'
+}
+
+function roleMatchesService(stylistRoles, serviceName) {
+  if (!stylistRoles || stylistRoles.length === 0) return true
+  const bucket = inferServiceBucket(serviceName)
+  if (bucket === 'other') return true
+  const roles = stylistRoles.map((r) => normalizeText(r))
+  const has = (keyword) => roles.some((r) => r.includes(keyword))
+  if (bucket === 'nail') return has('nail technician') || (has('hair') && has('nail'))
+  if (bucket === 'facial-massage') return has('facialist') || has('massage therapist')
+  if (bucket === 'barber') return has('barber')
+  if (bucket === 'hair') return has('hairdresser') || has('barber') || has('senior hairdresser')
+  return true
+}
+
 export default function AppointmentsTable({
   branch,
   activeTab,
@@ -294,6 +332,7 @@ export default function AppointmentsTable({
           dateKey: formatDateKey(apt.preferredDate),
           notes: apt.notes || '',
           rawServices: apt.services || null,
+          rawStylists: apt.stylists || null,
         }
       })
       setAppointments(mapped)
@@ -322,7 +361,13 @@ export default function AppointmentsTable({
 
       if (date?.trim() && apt.dateKey !== date.trim()) return false
 
-      if (stylist && stylist !== 'All Stylists' && apt.stylist !== stylist) return false
+      if (
+        stylist &&
+        stylist !== 'All Stylists' &&
+        !apt.stylist.toLowerCase().includes(stylist.toLowerCase())
+      ) {
+        return false
+      }
 
       return true
     })
@@ -350,8 +395,19 @@ export default function AppointmentsTable({
         map.set(key, srv)
       }
     }
-    return Array.from(map.values())
-  }, [servicesCatalog, selectedAppointment])
+    const all = Array.from(map.values())
+    if (!selectedAppointment) return all
+
+    const stylistRows = extractStylistsFromAppointment(selectedAppointment.rawStylists)
+    const selectedStylistNorm = normalizeText(selectedAppointment.stylist)
+    const target = stylistRows.find((row) => normalizeText(row.name) === selectedStylistNorm)
+    const roles = String(target?.role || '')
+      .split('/')
+      .map((r) => normalizeText(r))
+      .filter(Boolean)
+    if (roles.length === 0) return all
+    return all.filter((srv) => roleMatchesService(roles, srv.name))
+  }, [servicesCatalog, selectedAppointment, branch])
 
   const hasDraftChanges = useMemo(() => {
     if (!selectedAppointment) return false

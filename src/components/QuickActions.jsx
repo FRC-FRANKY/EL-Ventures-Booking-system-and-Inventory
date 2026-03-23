@@ -24,7 +24,7 @@ export default function QuickActions() {
               onClick={() => navigate(action.path)}
               className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-slate-50 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:border-violet-200 hover:bg-white hover:shadow-sm dark:bg-slate-800/80 dark:text-slate-200 dark:hover:border-fuchsia-500/30 dark:hover:bg-slate-800"
             >
-              <Icon className="h-5 w-5 shrink-0 text-violet-600 dark:text-fuchsia-400" />
+              <Icon className="h-5 w-5 shrink-0 text-[#C2185B] dark:text-[#EC407A]" />
               {action.label}
             </button>
           )

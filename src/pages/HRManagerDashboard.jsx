@@ -99,7 +99,7 @@ export default function HRManagerDashboard() {
           <button
             type="button"
             onClick={() => navigate('/hr-manager/daily-report')}
-            className="mt-4 w-full rounded-xl border border-slate-200 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50 dark:border-slate-700 dark:text-fuchsia-300 dark:hover:bg-slate-800"
+            className="mt-4 w-full rounded-xl border border-slate-200 py-3 text-sm font-semibold text-[#C2185B] transition hover:bg-violet-50 dark:border-slate-700 dark:text-fuchsia-300 dark:hover:bg-slate-800"
           >
             Go to daily report →
           </button>

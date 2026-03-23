@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { X, Save } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function EditCommissionRateModal({ entry, onClose, onSave }) {
   const [rate, setRate] = useState(entry?.rate ?? 0)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (entry) setRate(entry.rate)
@@ -13,16 +15,35 @@ export default function EditCommissionRateModal({ entry, onClose, onSave }) {
   const newAmount = (entry.price * rate) / 100
 
   const handleSave = () => {
-    onSave({ ...entry, rate, amount: newAmount })
-    onClose()
+    const run = async () => {
+      setSaving(true)
+      try {
+        await Promise.resolve(onSave({ ...entry, rate, amount: newAmount }))
+        onClose()
+      } finally {
+        setSaving(false)
+      }
+    }
+    void run()
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
-      <div
-        className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative"
-        onClick={(e) => e.stopPropagation()}
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+        onClick={onClose}
       >
+        <motion.div
+          initial={{ opacity: 0, y: 16, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 10, scale: 0.98 }}
+          transition={{ duration: 0.18 }}
+          className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative"
+          onClick={(e) => e.stopPropagation()}
+        >
         <button
           type="button"
           onClick={onClose}
@@ -78,13 +99,15 @@ export default function EditCommissionRateModal({ entry, onClose, onSave }) {
           <button
             type="button"
             onClick={handleSave}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-700 text-white text-sm font-medium hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-700 text-white text-sm font-medium hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-60"
           >
             <Save className="w-4 h-4" />
-            Save Changes
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }

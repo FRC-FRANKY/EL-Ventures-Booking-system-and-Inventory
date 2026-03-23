@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import ManagementShell from '../components/shell/ManagementShell'
 import ReportFilters from '../components/report/ReportFilters'
@@ -10,37 +10,29 @@ import FinancialSummary from '../components/report/FinancialSummary'
 import CommissionFilters from '../components/report/CommissionFilters'
 import CommissionReport from '../components/report/CommissionReport'
 import EditCommissionRateModal from '../components/report/EditCommissionRateModal'
+import { useCommissionTransactions } from '../hooks/useCommissionTransactions'
+import { fetchStylists, updateAppointmentCommissionRate } from '../utils/firebaseHelpers'
 
-const INITIAL_COMMISSION_DATA = [
-  {
-    date: 'Friday, March 6, 2026',
-    entries: [
-      { id: '1', stylist: 'Rachel Adams', service: 'Hair Extensions', price: 450, rate: 46.9, amount: 211.05 },
-    ],
-  },
-  {
-    date: 'Thursday, March 5, 2026',
-    entries: [
-      { id: '2', stylist: 'Emma Williams', service: 'Haircut & Styling', price: 85, rate: 40, amount: 34 },
-      { id: '3', stylist: 'Emma Williams', service: 'Hair Coloring', price: 180, rate: 40, amount: 72 },
-      { id: '4', stylist: 'Sophia Martinez', service: 'Manicure & Pedicure', price: 75, rate: 35, amount: 26.25 },
-      { id: '5', stylist: 'James Taylor', service: 'Beard Trim', price: 35, rate: 30, amount: 10.5 },
-      { id: '6', stylist: 'Emma Williams', service: 'Balayage', price: 220, rate: 40, amount: 88 },
-      { id: '7', stylist: 'James Taylor', service: 'Haircut', price: 45, rate: 30, amount: 13.5 },
-      { id: '8', stylist: 'Rachel Adams', service: 'Keratin Treatment', price: 250, rate: 45, amount: 112.5 },
-      { id: '9', stylist: 'Michael Ross', service: 'Haircut & Beard Trim', price: 60, rate: 35, amount: 21 },
-    ],
-  },
-]
+function formatLongDate(dateKey) {
+  if (!dateKey) return 'No Date'
+  const d = new Date(dateKey)
+  if (Number.isNaN(d.getTime())) return dateKey
+  return d.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 
 function flattenAndFilter(commissionData, stylistFilter, dateFilter, serviceSearch) {
-  const all = commissionData.flatMap((group) =>
-    group.entries.map((e) => ({ ...e, date: group.date }))
-  )
+  const all = commissionData.flatMap((group) => group.entries.map((e) => ({ ...e, date: group.date })))
   return all.filter((e) => {
     if (stylistFilter && stylistFilter !== 'All Stylists' && e.stylist !== stylistFilter) return false
     if (dateFilter && dateFilter !== 'All Dates' && e.date !== dateFilter) return false
-    if (serviceSearch.trim() && !e.service.toLowerCase().includes(serviceSearch.trim().toLowerCase())) return false
+    if (serviceSearch.trim() && !e.service.toLowerCase().includes(serviceSearch.trim().toLowerCase())) {
+      return false
+    }
     return true
   })
 }
@@ -58,13 +50,82 @@ export default function HRManagerDailyReport() {
   const location = useLocation()
   const displayName = location.state?.fullName || 'HR Recel Orcales'
 
-  const [commissionData, setCommissionData] = useState(INITIAL_COMMISSION_DATA)
   const [editingEntry, setEditingEntry] = useState(null)
   const [stylistFilter, setStylistFilter] = useState('All Stylists')
   const [dateFilter, setDateFilter] = useState('All Dates')
   const [serviceSearch, setServiceSearch] = useState('')
   const [reportDate, setReportDate] = useState('07/03/2026')
-  const [branch, setBranch] = useState('Mandaue City Branch')
+  const [selectedBranch, setSelectedBranch] = useState('Mandaue City Branch')
+  const [stylistsByRole, setStylistsByRole] = useState([])
+  const knownBranches = useMemo(
+    () => ['Mandaue City Branch', 'Mandaue Branch', 'Pusok Branch', 'Pajac Branch', 'Cebu City Branch'],
+    []
+  )
+
+  const commissionScope = { branchName: selectedBranch }
+
+  const { loading, error, transactions, stylists } = useCommissionTransactions(commissionScope)
+
+  const branchOptions = useMemo(() => {
+    const discovered = Array.from(new Set(transactions.map((row) => row.branch).filter(Boolean)))
+    return Array.from(new Set([...knownBranches, ...discovered]))
+  }, [knownBranches, transactions])
+
+  useEffect(() => {
+    if (!branchOptions.includes(selectedBranch)) {
+      setSelectedBranch(branchOptions[0] || 'Mandaue City Branch')
+    }
+  }, [branchOptions, selectedBranch])
+
+  useEffect(() => {
+    // Keep strict exact-match filtering, but gracefully recover from common
+    // data naming mismatch where records are stored as "Mandaue Branch".
+    if (
+      !loading &&
+      selectedBranch === 'Mandaue City Branch' &&
+      transactions.length === 0 &&
+      branchOptions.includes('Mandaue Branch')
+    ) {
+      setSelectedBranch('Mandaue Branch')
+    }
+  }, [loading, selectedBranch, transactions.length, branchOptions])
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const rows = await fetchStylists(selectedBranch)
+        setStylistsByRole(rows)
+      } catch {
+        setStylistsByRole([])
+      }
+    }
+    void run()
+  }, [selectedBranch])
+
+  const branchScoped = transactions
+
+  const commissionData = useMemo(() => {
+    return groupByDate(
+      branchScoped.map((row) => ({
+        id: row.id,
+        appointmentId: row.appointmentId,
+        serviceKey: row.serviceKey,
+        serviceIndex: row.serviceIndex,
+        date: formatLongDate(row.dateKey),
+        branch: row.branch,
+        stylist: row.stylistName,
+        service: row.service,
+        price: Number(row.price || 0),
+        rate: Number(row.commissionRate || 0),
+        amount: Number(row.commissionAmount || 0),
+      }))
+    )
+  }, [branchScoped])
+
+  const dateOptions = useMemo(() => {
+    const set = new Set(commissionData.map((g) => g.date))
+    return ['All Dates', ...Array.from(set)]
+  }, [commissionData])
 
   const filteredFlat = useMemo(
     () => flattenAndFilter(commissionData, stylistFilter, dateFilter, serviceSearch),
@@ -94,19 +155,16 @@ export default function HRManagerDailyReport() {
     setEditingEntry(null)
   }, [])
 
-  const handleSaveCommission = useCallback((updated) => {
-    setCommissionData((prev) =>
-      prev.map((group) => {
-        if (group.date !== updated.date) return group
-        return {
-          ...group,
-          entries: group.entries.map((e) =>
-            e.id === updated.id ? { ...e, rate: updated.rate, amount: updated.amount } : e
-          ),
-        }
-      })
+  const handleSaveCommission = useCallback(async (updated) => {
+    const branchToWrite = updated.branch || selectedBranch
+    await updateAppointmentCommissionRate(
+      updated.appointmentId,
+      updated.rate,
+      branchToWrite,
+      updated.serviceKey,
+      updated.serviceIndex
     )
-  }, [])
+  }, [selectedBranch])
 
   const handlePrint = useCallback(() => {
     window.print()
@@ -116,7 +174,7 @@ export default function HRManagerDailyReport() {
     const payload = {
       exportedAt: new Date().toISOString(),
       reportDate,
-      branch,
+      branch: selectedBranch,
       commissionFilters: { stylistFilter, dateFilter, serviceSearch },
       commissionSummary: summary,
       commissionEntries: filteredFlat,
@@ -126,25 +184,31 @@ export default function HRManagerDailyReport() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `hr-daily-report_${branch.replace(/\s+/g, '_')}_${reportDate.replaceAll('/', '-')}.json`
+    a.download = `hr-daily-report_${selectedBranch.replace(/\s+/g, '_')}_${reportDate.replaceAll('/', '-')}.json`
     document.body.appendChild(a)
     a.click()
     a.remove()
     URL.revokeObjectURL(url)
-  }, [reportDate, branch, stylistFilter, dateFilter, serviceSearch, summary, filteredFlat])
+  }, [reportDate, selectedBranch, stylistFilter, dateFilter, serviceSearch, summary, filteredFlat])
 
   return (
     <ManagementShell module="hr" portalSubtitle="HR Manager · Reports" userName={displayName}>
       <div className="space-y-6">
         <ReportFilters
           reportDate={reportDate}
-          branch={branch}
+          branch={selectedBranch}
+          branchOptions={branchOptions}
           onReportDateChange={setReportDate}
-          onBranchChange={setBranch}
+          onBranchChange={setSelectedBranch}
           onPrint={handlePrint}
           onExport={handleExport}
         />
-        <ReportHeader branch={branch} reportDate={reportDate} />
+        <ReportHeader branch={selectedBranch} reportDate={reportDate} />
+        {error && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="space-y-6">
@@ -157,10 +221,38 @@ export default function HRManagerDailyReport() {
           </div>
         </div>
 
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-slate-900">Stylists ({selectedBranch})</h3>
+          {stylistsByRole.length === 0 ? (
+            <p className="mt-2 text-xs text-slate-500">No stylist data available.</p>
+          ) : (
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full min-w-[420px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                    <th className="py-2 pr-4">Name</th>
+                    <th className="py-2">Role</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {stylistsByRole.map((row) => (
+                    <tr key={`${row.branch || selectedBranch}-${row.name}`}>
+                      <td className="py-2 pr-4 text-slate-900">{row.name}</td>
+                      <td className="py-2 text-slate-700">{row.role || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         <CommissionFilters
           stylistFilter={stylistFilter}
           dateFilter={dateFilter}
           serviceSearch={serviceSearch}
+          stylistOptions={stylists}
+          dateOptions={dateOptions}
           onStylistChange={setStylistFilter}
           onDateChange={setDateFilter}
           onServiceSearchChange={setServiceSearch}
@@ -169,9 +261,14 @@ export default function HRManagerDailyReport() {
           totalSales={`PHP ${summary.sales.toFixed(2)}`}
           totalCommission={`PHP ${summary.commission.toFixed(2)}`}
         />
-        <CommissionReport data={filteredGrouped} onEditRate={handleEditRate} />
+        {loading ? (
+          <div className="rounded-xl bg-white p-6 text-sm text-slate-500 shadow-sm">
+            Loading commission records...
+          </div>
+        ) : (
+          <CommissionReport data={filteredGrouped} onEditRate={handleEditRate} />
+        )}
       </div>
-
       {editingEntry && (
         <EditCommissionRateModal
           entry={editingEntry}

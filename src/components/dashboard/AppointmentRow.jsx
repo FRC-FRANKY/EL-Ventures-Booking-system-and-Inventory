@@ -14,8 +14,8 @@ export default function AppointmentRow({ appointment, onViewDetails }) {
     <tr className="border-b border-slate-100 hover:bg-slate-50/60 transition-colors">
       <td className="py-4 px-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-600/15 via-fuchsia-500/15 to-sky-500/15">
-            <User className="h-4 w-4 text-violet-700" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#C2185B]/15 via-[#EC407A]/15 to-[#F48FB1]/15">
+            <User className="h-4 w-4 text-[#C2185B]" />
           </div>
           <span className="font-medium text-slate-900">{appointment.customer}</span>
         </div>

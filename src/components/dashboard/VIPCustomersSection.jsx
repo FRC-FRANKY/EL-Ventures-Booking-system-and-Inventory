@@ -9,7 +9,7 @@ export default function VIPCustomersSection() {
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-card backdrop-blur-sm">
       <div className="flex items-center gap-2 mb-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-600/15 via-rose-400/20 to-sky-500/15">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-600/15 via-rose-400/20 to-[#F48FB1]/15">
           <span className="text-sm font-semibold text-fuchsia-800">₱</span>
         </div>
         <h3 className="text-lg font-bold text-slate-900">VIP customers</h3>

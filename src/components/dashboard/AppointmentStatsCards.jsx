@@ -69,25 +69,25 @@ export default function AppointmentStatsCards({ branch }) {
         title: "Today's Appointments",
         value: String(todayCount),
         icon: Calendar,
-        iconBg: 'bg-gradient-to-br from-violet-600 to-fuchsia-500',
+        iconBg: 'bg-gradient-to-br from-[#C2185B] to-[#EC407A]',
       },
       {
         title: 'Confirmed',
         value: String(confirmed),
         icon: CheckCircle,
-        iconBg: 'bg-gradient-to-br from-emerald-500 to-teal-400',
+        iconBg: 'bg-gradient-to-br from-[#C2185B] via-[#EC407A] to-[#F48FB1]',
       },
       {
         title: 'Pending',
         value: String(pending),
         icon: Clock,
-        iconBg: 'bg-gradient-to-br from-amber-400 to-rose-400',
+        iconBg: 'bg-gradient-to-br from-[#EC407A] to-[#F48FB1]',
       },
       {
         title: 'Total Revenue',
         value: `PHP ${revenue.toFixed(2)}`,
         icon: Users,
-        iconBg: 'bg-gradient-to-br from-fuchsia-500 to-violet-600',
+        iconBg: 'bg-gradient-to-br from-[#C2185B] via-[#EC407A] to-[#F48FB1]',
       },
     ]
   }, [appointments])

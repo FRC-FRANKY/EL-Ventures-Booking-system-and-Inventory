@@ -1,12 +1,11 @@
 import { Filter, ChevronDown } from 'lucide-react'
 
-const STYLISTS = ['All Stylists', 'Rachel Adams', 'Emma Williams', 'Sophia Martinez', 'James Taylor', 'Michael Ross']
-const DATES = ['All Dates', 'Friday, March 6, 2026', 'Thursday, March 5, 2026']
-
 export default function CommissionFilters({
   stylistFilter,
   dateFilter,
   serviceSearch,
+  stylistOptions = ['All Stylists'],
+  dateOptions = ['All Dates'],
   onStylistChange,
   onDateChange,
   onServiceSearchChange,
@@ -30,7 +29,7 @@ export default function CommissionFilters({
               onChange={(e) => onStylistChange(e.target.value)}
               className="w-full pl-3 pr-9 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none"
             >
-              {STYLISTS.map((s) => (
+              {stylistOptions.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
@@ -47,7 +46,7 @@ export default function CommissionFilters({
               onChange={(e) => onDateChange(e.target.value)}
               className="w-full pl-3 pr-9 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none"
             >
-              {DATES.map((d) => (
+              {dateOptions.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
             </select>

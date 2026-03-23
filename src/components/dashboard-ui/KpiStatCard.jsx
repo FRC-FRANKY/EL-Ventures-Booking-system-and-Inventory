@@ -26,7 +26,7 @@ export default function KpiStatCard({
       transition={{ duration: 0.35, delay }}
       className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover dark:border-slate-800 dark:bg-slate-900"
     >
-      <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-sky-500/10 blur-2xl transition-opacity group-hover:opacity-100" />
+      <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-[#F48FB1]/10 blur-2xl transition-opacity group-hover:opacity-100" />
       <div className="relative flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -40,7 +40,7 @@ export default function KpiStatCard({
           ) : null}
         </div>
         {Icon ? (
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/15 via-fuchsia-500/15 to-sky-500/15 text-violet-700 dark:text-fuchsia-200">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#C2185B]/15 via-[#EC407A]/15 to-[#F48FB1]/15 text-[#C2185B] dark:text-fuchsia-200">
             <Icon className="h-5 w-5" />
           </span>
         ) : null}

@@ -20,8 +20,8 @@ export default function CustomerStatsCards() {
             <p className="text-sm font-medium text-slate-600">{stat.title}</p>
             <div className="flex items-center gap-2 mt-2">
               {Icon && (
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600/15 via-fuchsia-500/15 to-sky-500/15">
-                  <Icon className="h-5 w-5 text-violet-700" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#C2185B]/15 via-[#EC407A]/15 to-[#F48FB1]/15">
+                  <Icon className="h-5 w-5 text-[#C2185B]" />
                 </div>
               )}
               <p className="text-2xl font-bold text-slate-900">{stat.value}</p>

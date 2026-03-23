@@ -71,7 +71,7 @@ export default function ManagementShell({
     [
       'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
       isActive
-        ? 'bg-gradient-to-r from-violet-600/15 via-fuchsia-500/15 to-sky-500/15 text-violet-700 ring-1 ring-violet-200/80 dark:text-fuchsia-200 dark:ring-fuchsia-500/30'
+        ? 'bg-gradient-to-r from-[#C2185B]/15 via-[#EC407A]/15 to-[#F48FB1]/15 text-[#C2185B] ring-1 ring-[#EC407A]/40 dark:text-fuchsia-200 dark:ring-[#EC407A]/40'
         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white',
     ].join(' ')
 
@@ -95,7 +95,7 @@ export default function ManagementShell({
         ].join(' ')}
       >
         <div className="flex h-14 items-center gap-2 border-b border-slate-200/80 px-4 dark:border-slate-800">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-sky-500 text-white shadow-md">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#C2185B] via-[#EC407A] to-[#F48FB1] text-white shadow-md">
             <Sparkles className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">
@@ -136,7 +136,7 @@ export default function ManagementShell({
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 border-t border-slate-200/80 p-3 dark:border-slate-800">
-          <div className="rounded-xl bg-gradient-to-br from-violet-600/10 via-fuchsia-500/10 to-sky-500/10 p-3 text-xs text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl bg-gradient-to-br from-[#C2185B]/10 via-[#EC407A]/10 to-[#F48FB1]/10 p-3 text-xs text-slate-600 dark:text-slate-300">
             <p className="font-semibold text-slate-800 dark:text-white">Modules</p>
             <p className="mt-1 leading-relaxed">
               HR · Reception · Accounting in one workspace.
@@ -178,9 +178,9 @@ export default function ManagementShell({
                 setNotifOpen(false)
                 setProfileOpen(false)
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-fuchsia-500/40"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-[#EC407A] hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-fuchsia-500/40"
             >
-              <Layers className="h-3.5 w-3.5 text-violet-600" />
+              <Layers className="h-3.5 w-3.5 text-[#C2185B]" />
               <span className="hidden sm:inline">Switch module</span>
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </button>
@@ -235,9 +235,9 @@ export default function ManagementShell({
                 setNotifOpen(false)
                 setModuleOpen(false)
               }}
-              className="flex items-center gap-2 rounded-lg border border-slate-200/80 bg-white py-1 pl-1 pr-2 shadow-sm transition hover:border-violet-300 dark:border-slate-700 dark:bg-slate-800"
+              className="flex items-center gap-2 rounded-lg border border-slate-200/80 bg-white py-1 pl-1 pr-2 shadow-sm transition hover:border-[#EC407A] dark:border-slate-700 dark:bg-slate-800"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-[#C2185B] to-[#EC407A] text-xs font-bold text-white">
                 {userName?.charAt(0)?.toUpperCase() || 'U'}
               </span>
               <span className="hidden max-w-[120px] truncate text-xs font-medium text-slate-700 dark:text-slate-200 sm:block">

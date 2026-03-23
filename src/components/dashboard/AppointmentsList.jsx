@@ -33,7 +33,7 @@ export default function AppointmentsList() {
             key={`${apt.time}-${apt.customer}`}
             className="flex gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0 dark:border-slate-800"
           >
-            <span className="w-20 flex-shrink-0 text-sm font-semibold text-violet-600 dark:text-fuchsia-400">
+            <span className="w-20 flex-shrink-0 text-sm font-semibold text-[#C2185B] dark:text-[#EC407A]">
               {apt.time}
             </span>
             <div>

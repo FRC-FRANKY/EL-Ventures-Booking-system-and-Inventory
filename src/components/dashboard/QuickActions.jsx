@@ -6,14 +6,14 @@ const actions = [
     title: 'Manage Appointments',
     description: 'View and manage customer bookings.',
     icon: Calendar,
-    iconBg: 'bg-blue-500',
+    iconBg: 'bg-gradient-to-br from-[#C2185B] to-[#EC407A]',
     path: '/receptionist/appointments',
   },
   {
     title: 'Customer Database',
     description: 'Access customer information and history.',
     icon: Users,
-    iconBg: 'bg-green-500',
+    iconBg: 'bg-gradient-to-br from-[#EC407A] to-[#F48FB1]',
     path: '/receptionist/customers',
   },
 ]
@@ -35,7 +35,7 @@ export default function QuickActions() {
               key={action.title}
               type="button"
               onClick={() => navigate(action.path, { state: { fullName, branch } })}
-              className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4 text-left hover:shadow-md hover:bg-gray-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4 text-left hover:shadow-md hover:bg-gray-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-[#C2185B] focus:ring-offset-2"
             >
               <div
                 className={`w-12 h-12 rounded-full ${action.iconBg} flex items-center justify-center flex-shrink-0`}

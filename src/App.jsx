@@ -5,6 +5,7 @@ import ReceptionistWelcome from './pages/ReceptionistWelcome'
 import ReceptionistDashboard from './pages/ReceptionistDashboard'
 import ReceptionistSignUp from './pages/ReceptionistSignUp'
 import ReceptionistAppointments from './pages/ReceptionistAppointments'
+import ReceptionistTransactions from './pages/ReceptionistTransactions'
 import ReceptionistCustomers from './pages/ReceptionistCustomers'
 import HRManagerDashboard from './pages/HRManagerDashboard'
 import HRManagerDailyReport from './pages/HRManagerDailyReport'
@@ -23,6 +24,7 @@ function App() {
       <Route path="/receptionist/signup" element={<ReceptionistSignUp />} />
       <Route path="/receptionist/dashboard" element={<ReceptionistDashboard />} />
       <Route path="/receptionist/appointments" element={<ReceptionistAppointments />} />
+      <Route path="/receptionist/transactions" element={<ReceptionistTransactions />} />
       <Route path="/receptionist/customers" element={<ReceptionistCustomers />} />
       <Route path="/hr-manager/dashboard" element={<HRManagerDashboard />} />
       <Route path="/hr-manager/daily-report" element={<HRManagerDailyReport />} />

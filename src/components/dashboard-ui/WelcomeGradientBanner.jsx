@@ -21,12 +21,12 @@ export default function WelcomeGradientBanner({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
       className={[
-        'relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-sky-500 p-6 shadow-card-hover sm:p-8',
+        'relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#C2185B] via-[#EC407A] to-[#F48FB1] p-6 shadow-card-hover sm:p-8',
         className,
       ].join(' ')}
     >
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-sky-400/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-[#F48FB1]/35 blur-3xl" />
       <div className="relative flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h2>

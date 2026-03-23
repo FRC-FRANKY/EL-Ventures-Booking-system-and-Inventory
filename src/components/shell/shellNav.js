@@ -3,6 +3,7 @@ import {
   FileText,
   Calendar,
   Users,
+  History,
   Package,
   Receipt,
   Wallet,
@@ -26,6 +27,7 @@ export function getSidebarNav(module, receptionistState) {
       return [
         { to: '/receptionist/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true, state },
         { to: '/receptionist/appointments', label: 'Appointments', icon: Calendar, state },
+        { to: '/receptionist/transactions', label: 'Transaction History', icon: History, state },
         { to: '/receptionist/customers', label: 'Customers', icon: Users, state },
       ]
     case 'accounting':
