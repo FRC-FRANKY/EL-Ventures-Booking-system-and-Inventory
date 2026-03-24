@@ -11,7 +11,7 @@ import CommissionFilters from '../components/report/CommissionFilters'
 import CommissionReport from '../components/report/CommissionReport'
 import EditCommissionRateModal from '../components/report/EditCommissionRateModal'
 import { useCommissionTransactions } from '../hooks/useCommissionTransactions'
-import { fetchStylists, updateAppointmentCommissionRate } from '../utils/firebaseHelpers'
+import { updateAppointmentCommissionRate } from '../utils/firebaseHelpers'
 
 function formatLongDate(dateKey) {
   if (!dateKey) return 'No Date'
@@ -56,7 +56,6 @@ export default function HRManagerDailyReport() {
   const [serviceSearch, setServiceSearch] = useState('')
   const [reportDate, setReportDate] = useState('07/03/2026')
   const [selectedBranch, setSelectedBranch] = useState('Mandaue City Branch')
-  const [stylistsByRole, setStylistsByRole] = useState([])
   const knownBranches = useMemo(
     () => ['Mandaue City Branch', 'Pusok Branch', 'Pajac Branch', 'Cebu City Branch'],
     []
@@ -76,31 +75,6 @@ export default function HRManagerDailyReport() {
       setSelectedBranch(branchOptions[0] || 'Mandaue City Branch')
     }
   }, [branchOptions, selectedBranch])
-
-  useEffect(() => {
-    // Keep strict exact-match filtering, but gracefully recover from common
-    // data naming mismatch where records are stored as "Mandaue Branch".
-    if (
-      !loading &&
-      selectedBranch === 'Mandaue City Branch' &&
-      transactions.length === 0 &&
-      branchOptions.includes('Mandaue Branch')
-    ) {
-      setSelectedBranch('Mandaue Branch')
-    }
-  }, [loading, selectedBranch, transactions.length, branchOptions])
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        const rows = await fetchStylists(selectedBranch)
-        setStylistsByRole(rows)
-      } catch {
-        setStylistsByRole([])
-      }
-    }
-    void run()
-  }, [selectedBranch])
 
   const branchScoped = transactions
 
@@ -219,32 +193,6 @@ export default function HRManagerDailyReport() {
             <PaymentBreakdown />
             <FinancialSummary />
           </div>
-        </div>
-
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-900">Stylists ({selectedBranch})</h3>
-          {stylistsByRole.length === 0 ? (
-            <p className="mt-2 text-xs text-slate-500">No stylist data available.</p>
-          ) : (
-            <div className="mt-3 overflow-x-auto">
-              <table className="w-full min-w-[420px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
-                    <th className="py-2 pr-4">Name</th>
-                    <th className="py-2">Role</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {stylistsByRole.map((row) => (
-                    <tr key={`${row.branch || selectedBranch}-${row.name}`}>
-                      <td className="py-2 pr-4 text-slate-900">{row.name}</td>
-                      <td className="py-2 text-slate-700">{row.role || '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
 
         <CommissionFilters

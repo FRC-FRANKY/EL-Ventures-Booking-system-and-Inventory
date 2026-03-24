@@ -22,7 +22,7 @@ function logFirebaseError(prefix, error) {
   console.error(prefix, error?.message || error)
 }
 
-const KNOWN_BRANCHES = ['Mandaue Branch', 'Pajac Branch', 'Pusok Branch', 'Cebu City Branch']
+const KNOWN_BRANCHES = ['Mandaue City Branch', 'Pajac Branch', 'Pusok Branch', 'Cebu City Branch']
 
 function normalizeStylistsNode(stylistsNode, branch) {
   if (!stylistsNode) return []
@@ -47,22 +47,21 @@ export function extractStylistsFromAppointment(stylistsNode) {
 
   const rows = []
 
-  const pushRow = (name, role) => {
+  const pushRow = (name) => {
     const n = String(name || '').trim()
-    const r = String(role || '').trim()
     if (!n) return
-    rows.push({ name: n, role: r || '' })
+    rows.push({ name: n })
   }
 
   if (Array.isArray(stylistsNode)) {
     for (const item of stylistsNode) {
       if (!item) continue
       if (typeof item === 'string') {
-        pushRow(item, '')
+        pushRow(item)
         continue
       }
       if (typeof item === 'object') {
-        pushRow(item.name || item.fullName || item.stylistName, item.role || item.position || '')
+        pushRow(item.name || item.fullName || item.stylistName)
       }
     }
     return rows
@@ -71,25 +70,22 @@ export function extractStylistsFromAppointment(stylistsNode) {
   if (typeof stylistsNode === 'object') {
     for (const [key, value] of Object.entries(stylistsNode)) {
       if (value === true) {
-        pushRow(key, '')
+        pushRow(key)
         continue
       }
       if (typeof value === 'string' || typeof value === 'number') {
-        pushRow(value, '')
+        pushRow(value)
         continue
       }
       if (value && typeof value === 'object') {
-        pushRow(
-          value.name || value.fullName || value.stylistName || key,
-          value.role || value.position || ''
-        )
+        pushRow(value.name || value.fullName || value.stylistName || key)
       }
     }
     return rows
   }
 
   if (typeof stylistsNode === 'string' || typeof stylistsNode === 'number') {
-    pushRow(stylistsNode, '')
+    pushRow(stylistsNode)
   }
   return rows
 }

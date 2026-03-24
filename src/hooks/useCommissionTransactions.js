@@ -3,7 +3,6 @@ import {
   extractStylistsFromAppointment,
   listenToAppointments,
   listenToBranchAppointments,
-  listenToServicesCatalog,
 } from '../utils/firebaseHelpers'
 
 function extractNumber(value) {
@@ -110,76 +109,32 @@ function cleanStylistName(label) {
   return String(label || '').trim()
 }
 
-function inferServiceBucket(serviceName) {
-  const s = normalizeText(serviceName)
-  if (
-    s.includes('manicure') ||
-    s.includes('pedicure') ||
-    s.includes('nail') ||
-    s.includes('gel') ||
-    s.includes('polish')
-  ) {
-    return 'nail'
-  }
-  if (
-    s.includes('massage') ||
-    s.includes('facial') ||
-    s.includes('spa') ||
-    s.includes('scrub')
-  ) {
-    return 'facial-massage'
-  }
-  if (
-    s.includes('beard') ||
-    s.includes('fade') ||
-    s.includes('clipper')
-  ) {
-    return 'barber'
-  }
-  if (
-    s.includes('hair') ||
-    s.includes('color') ||
-    s.includes('treatment') ||
-    s.includes('rebond') ||
-    s.includes('perm') ||
-    s.includes('blow')
-  ) {
-    return 'hair'
-  }
-  return 'other'
-}
-
-function roleMatchesService(stylistRoles, serviceName) {
-  if (!stylistRoles || stylistRoles.length === 0) return true
-  const bucket = inferServiceBucket(serviceName)
-  if (bucket === 'other') return true
-
-  const roles = stylistRoles.map((r) => normalizeText(r))
-  const has = (keyword) => roles.some((r) => r.includes(keyword))
-
-  if (bucket === 'nail') return has('nail technician') || (has('hair') && has('nail'))
-  if (bucket === 'facial-massage') return has('facialist') || has('massage therapist')
-  if (bucket === 'barber') return has('barber')
-  if (bucket === 'hair') {
-    return has('hairdresser') || has('barber') || (has('hair') && has('nail')) || has('senior hairdresser')
-  }
-  return true
-}
-
-function findMatchingStylistForService(branch, serviceName) {
-  const roster = Array.isArray(branch) ? branch : []
-  for (const stylist of roster) {
-    if (roleMatchesService(stylist.roles, serviceName)) {
-      return stylist.name
-    }
-  }
-  return ''
-}
-
 function parseStylists(stylists) {
   return extractStylistsFromAppointment(stylists)
     .map((x) => cleanStylistName(x.name))
     .filter(Boolean)
+}
+
+function resolveStylistForService(stylistRows, serviceRow, fallbackName) {
+  if (!Array.isArray(stylistRows) || stylistRows.length === 0) {
+    return cleanStylistName(fallbackName) || 'Unknown Stylist'
+  }
+
+  // Prefer explicit key when services come from object maps (e.g. {"0": {...}, "1": {...}).
+  const keyIndex =
+    serviceRow?.key != null && String(serviceRow.key).trim() !== ''
+      ? Number(serviceRow.key)
+      : NaN
+  if (Number.isInteger(keyIndex) && keyIndex >= 0 && stylistRows[keyIndex]?.name) {
+    return cleanStylistName(stylistRows[keyIndex].name)
+  }
+
+  const rowIndex = Number(serviceRow?.index)
+  if (Number.isInteger(rowIndex) && rowIndex >= 0 && stylistRows[rowIndex]?.name) {
+    return cleanStylistName(stylistRows[rowIndex].name)
+  }
+
+  return cleanStylistName(fallbackName) || 'Unknown Stylist'
 }
 
 function uniqueById(list) {
@@ -195,32 +150,6 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
   const [loading, setLoading] = useState(true)
   const [transactions, setTransactions] = useState([])
   const [error, setError] = useState('')
-  const [catalogMap, setCatalogMap] = useState(new Map())
-
-  useEffect(() => {
-    const unsubscribe = listenToServicesCatalog(
-      (services) => {
-        const map = new Map()
-        for (const item of services || []) {
-          const name = item?.name || item?.serviceName || item?.title || item?.service
-          if (!name) continue
-          map.set(String(name).toLowerCase(), {
-            price:
-              extractNumber(item?.price ?? item?.amount ?? item?.total ?? item?.servicePrice) ?? null,
-            commissionRate: extractNumber(item?.commissionRate ?? item?.rate),
-          })
-        }
-        setCatalogMap(map)
-      },
-      () => {
-        // Keep data flow alive even if services catalog is unavailable.
-      }
-    )
-
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe()
-    }
-  }, [])
 
   useEffect(() => {
     const branchNamesKey = Array.isArray(branchNames) ? branchNames.join('|') : ''
@@ -232,22 +161,14 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
       for (const apt of data) {
         const status = String(apt.status || '').toLowerCase()
         const paymentStatus = String(apt.paymentStatus || '').toLowerCase()
+        const stylistRows = extractStylistsFromAppointment(apt.stylists)
         const stylistCandidates = parseStylists(apt.stylists)
         const stylistName = stylistCandidates[0] || toDisplayList(apt.stylists)
         const stylistId = apt.stylistId || apt.stylistUid || stylistName
         const branch = apt.branchName || 'Unknown Branch'
         const dateKey = getDateKey(apt.preferredDate, apt.createdAt)
         const serviceRows = toServiceRows(apt.services)
-        const stylistRoleRows = extractStylistsFromAppointment(apt.stylists).map((row) => ({
-          name: cleanStylistName(row.name),
-          roles: String(row.role || '')
-            .split('/')
-            .map((r) => normalizeText(r))
-            .filter(Boolean),
-        }))
-        const currentStylistRoles =
-          stylistRoleRows.find((row) => normalizeText(row.name) === normalizeText(stylistName))
-            ?.roles || []
+        const baseSalary = extractNumber(apt.baseSalary ?? apt.base ?? 0) ?? 0
         const defaultRate = extractNumber(apt.commissionRate) ?? 0
         const appointmentTotal = extractNumber(apt.price || apt.totalAmount) ?? 0
 
@@ -267,6 +188,7 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
             price: appointmentTotal,
             commissionRate: rate,
             commissionAmount: amount,
+            baseSalary,
             dateKey,
             dateTime: formatDate(dateKey, apt.preferredTime),
             paymentStatus:
@@ -277,19 +199,9 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
         }
 
         for (const serviceRow of serviceRows) {
-          let resolvedStylistName = stylistName
-          let resolvedStylistId = stylistId
-          if (!roleMatchesService(currentStylistRoles, serviceRow.name)) {
-            const reassigned = findMatchingStylistForService(stylistRoleRows, serviceRow.name)
-            if (reassigned) {
-              resolvedStylistName = reassigned
-              resolvedStylistId = reassigned
-            }
-          }
-
-          const catalog = catalogMap.get(String(serviceRow.name || '').toLowerCase())
-          const price = Number(serviceRow.price || catalog?.price || 0)
-          const rate = Number(serviceRow.commissionRate ?? catalog?.commissionRate ?? defaultRate)
+          const mappedStylistName = resolveStylistForService(stylistRows, serviceRow, stylistName)
+          const price = Number(serviceRow.price || appointmentTotal || 0)
+          const rate = Number(serviceRow.commissionRate ?? defaultRate)
           const amount = Number(
             serviceRow.commissionAmount ?? (price > 0 ? (price * rate) / 100 : 0)
           )
@@ -298,13 +210,14 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
             appointmentId: apt.id,
             serviceKey: serviceRow.key,
             serviceIndex: serviceRow.index,
-            stylistId: resolvedStylistId,
-            stylistName: resolvedStylistName,
+            stylistId: mappedStylistName,
+            stylistName: mappedStylistName,
             branch,
             service: serviceRow.name,
             price,
             commissionRate: rate,
             commissionAmount: amount,
+            baseSalary,
             dateKey,
             dateTime: formatDate(dateKey, apt.preferredTime),
             paymentStatus:
@@ -393,7 +306,7 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
         if (typeof u === 'function') u()
       })
     }
-  }, [catalogMap, branchName, Array.isArray(branchNames) ? branchNames.join('|') : ''])
+  }, [branchName, Array.isArray(branchNames) ? branchNames.join('|') : ''])
 
   const stylists = useMemo(() => {
     const set = new Set(transactions.map((t) => t.stylistName).filter(Boolean))

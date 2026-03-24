@@ -220,41 +220,25 @@ function sumServicesPrice(servicesPayload) {
   }, 0)
 }
 
-function normalizeText(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function inferServiceBucket(serviceName) {
-  const s = normalizeText(serviceName)
-  if (s.includes('manicure') || s.includes('pedicure') || s.includes('nail')) return 'nail'
-  if (s.includes('massage') || s.includes('facial') || s.includes('spa')) return 'facial-massage'
-  if (s.includes('beard') || s.includes('fade') || s.includes('clipper')) return 'barber'
-  if (
-    s.includes('hair') ||
-    s.includes('color') ||
-    s.includes('treatment') ||
-    s.includes('rebond') ||
-    s.includes('blow')
-  ) {
-    return 'hair'
+function resolveStylistForService(stylistRows, serviceRow, fallbackName) {
+  if (!Array.isArray(stylistRows) || stylistRows.length === 0) {
+    return String(fallbackName || 'Unknown Stylist')
   }
-  return 'other'
-}
 
-function roleMatchesService(stylistRoles, serviceName) {
-  if (!stylistRoles || stylistRoles.length === 0) return true
-  const bucket = inferServiceBucket(serviceName)
-  if (bucket === 'other') return true
-  const roles = stylistRoles.map((r) => normalizeText(r))
-  const has = (keyword) => roles.some((r) => r.includes(keyword))
-  if (bucket === 'nail') return has('nail technician') || (has('hair') && has('nail'))
-  if (bucket === 'facial-massage') return has('facialist') || has('massage therapist')
-  if (bucket === 'barber') return has('barber')
-  if (bucket === 'hair') return has('hairdresser') || has('barber') || has('senior hairdresser')
-  return true
+  const keyIndex =
+    serviceRow?.key != null && String(serviceRow.key).trim() !== ''
+      ? Number(serviceRow.key)
+      : NaN
+  if (Number.isInteger(keyIndex) && keyIndex >= 0 && stylistRows[keyIndex]?.name) {
+    return String(stylistRows[keyIndex].name)
+  }
+
+  const rowIndex = Number(serviceRow?.index)
+  if (Number.isInteger(rowIndex) && rowIndex >= 0 && stylistRows[rowIndex]?.name) {
+    return String(stylistRows[rowIndex].name)
+  }
+
+  return String(fallbackName || stylistRows[0]?.name || 'Unknown Stylist')
 }
 
 export default function AppointmentsTable({
@@ -307,8 +291,17 @@ export default function AppointmentsTable({
   useEffect(() => {
     const unsubscribe = listenToBranchAppointments(branch, (data) => {
       const mapped = data.map((apt) => {
-        const services = toDisplayList(apt.services)
-        const stylistName = toDisplayList(apt.stylists)
+        const serviceRows = flattenServiceItems(apt.services).map(normalizeCatalogItem).filter(Boolean)
+        const parsedServices = serviceRows.length
+          ? serviceRows.map((srv, index) => ({ ...srv, index }))
+          : getServicesArray(toDisplayList(apt.services)).map((name, index) => ({ name, index }))
+        const stylistRows = extractStylistsFromAppointment(apt.stylists)
+        const fallbackStylist = toDisplayList(apt.stylists)
+        const pairedStylists = parsedServices.map((srv) =>
+          resolveStylistForService(stylistRows, srv, fallbackStylist)
+        )
+        const services = parsedServices.map((s) => s.name).join(', ') || toDisplayList(apt.services)
+        const stylistName = Array.from(new Set(pairedStylists)).join(', ') || fallbackStylist
 
         const group = classifyAppointment(apt)
 
@@ -395,18 +388,7 @@ export default function AppointmentsTable({
         map.set(key, srv)
       }
     }
-    const all = Array.from(map.values())
-    if (!selectedAppointment) return all
-
-    const stylistRows = extractStylistsFromAppointment(selectedAppointment.rawStylists)
-    const selectedStylistNorm = normalizeText(selectedAppointment.stylist)
-    const target = stylistRows.find((row) => normalizeText(row.name) === selectedStylistNorm)
-    const roles = String(target?.role || '')
-      .split('/')
-      .map((r) => normalizeText(r))
-      .filter(Boolean)
-    if (roles.length === 0) return all
-    return all.filter((srv) => roleMatchesService(roles, srv.name))
+    return Array.from(map.values())
   }, [servicesCatalog, selectedAppointment, branch])
 
   const hasDraftChanges = useMemo(() => {
