@@ -5,7 +5,6 @@ import {
   X,
   Bell,
   ChevronDown,
-  Sparkles,
   LogOut,
   Layers,
 } from 'lucide-react'
@@ -95,8 +94,8 @@ export default function ManagementShell({
         ].join(' ')}
       >
         <div className="flex h-14 items-center gap-2 border-b border-slate-200/80 px-4 dark:border-slate-800">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#C2185B] via-[#EC407A] to-[#F48FB1] text-white shadow-md">
-            <Sparkles className="h-4 w-4" />
+          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md ring-1 ring-slate-200">
+            <img src="/EL.png" alt="EL Ventures logo" className="h-8 w-8 object-contain" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
