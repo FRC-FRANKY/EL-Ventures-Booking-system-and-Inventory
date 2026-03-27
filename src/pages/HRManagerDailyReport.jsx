@@ -180,7 +180,9 @@ export default function HRManagerDailyReport() {
         <ReportHeader branch={selectedBranch} reportDate={reportDate} />
         {error && (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
+            {error.includes('permission_denied')
+              ? 'You do not have access to read appointments for this branch.'
+              : error}
           </div>
         )}
 

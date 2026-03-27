@@ -244,11 +244,9 @@ export async function addCustomer(branchId, customerData) {
 }
 
 export async function acceptAppointment(branchId, appointmentId, appointmentData) {
-  const branchApptRef = ref(db, `branches/${branchId}/appointments/${appointmentId}`)
-  await set(branchApptRef, {
-    ...appointmentData,
-    status: 'accepted',
-    acceptedAt: Date.now(),
+  const rootApptRef = ref(db, `appointments/${appointmentId}`)
+  await update(rootApptRef, {
+    status: 'ongoing',
   })
 }
 
@@ -270,46 +268,149 @@ export async function updateAppointmentCommissionRate(
   serviceKey,
   serviceIndex
 ) {
-  const rate = Number(commissionRate) || 0
+  const rawRate = Number(commissionRate) || 0
+  const rate = rawRate > 1 ? rawRate / 100 : rawRate
 
-  const resolveSnapshot = async () => {
-    const rootRef = ref(db, `appointments/${appointmentId}`)
-    const rootSnap = await get(rootRef)
-    if (rootSnap.exists()) return { refPath: `appointments/${appointmentId}`, data: rootSnap.val() }
-    return null
+  const rootRef = ref(db, `appointments/${appointmentId}`)
+  const rootSnap = await get(rootRef)
+  if (!rootSnap.exists()) throw new Error('Appointment not found for commission update.')
+
+  const data = rootSnap.val() || {}
+  const services = data.services
+
+  const toNumber = (value) => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'string') {
+      const n = Number(value.replace(/[^\d.\-]/g, ''))
+      return Number.isFinite(n) ? n : 0
+    }
+    return 0
   }
 
-  const resolved = await resolveSnapshot()
-  if (!resolved) throw new Error('Appointment not found for commission update.')
+  const amountFromPrice = (price) => toNumber(price) * rate
+  const payload = {}
+  const applyAssignedStylistRates = (basePath, serviceNode, price) => {
+    const assigned = serviceNode?.assignedStylists
+    if (!assigned || typeof assigned !== 'object') return null
 
-  const payload = { commissionRate: rate }
-  const amountFromPrice = (price) => Number(price || 0) * rate / 100
+    const entries = Array.isArray(assigned) ? assigned.entries() : Object.entries(assigned)
+    let totalServiceCommission = 0
+    let hasAny = false
 
-  if (serviceKey != null || serviceIndex != null) {
-    const services = resolved.data?.services
-    if (Array.isArray(services) && serviceIndex != null && services[serviceIndex]) {
-      const s = services[serviceIndex]
-      const price = Number(s?.price || s?.amount || s?.total || s?.servicePrice || 0)
-      payload[`services/${serviceIndex}/commissionRate`] = rate
-      payload[`services/${serviceIndex}/commissionAmount`] = amountFromPrice(price)
-    } else if (
-      services &&
-      typeof services === 'object' &&
-      serviceKey != null &&
-      Object.prototype.hasOwnProperty.call(services, serviceKey)
-    ) {
-      const s = services[serviceKey]
-      const price = Number(s?.price || s?.amount || s?.total || s?.servicePrice || 0)
-      payload[`services/${serviceKey}/commissionRate`] = rate
-      payload[`services/${serviceKey}/commissionAmount`] = amountFromPrice(price)
+    for (const [assignedId, stylistNode] of entries) {
+      if (!stylistNode || typeof stylistNode !== 'object') continue
+      const share = toNumber(stylistNode.share)
+      const commissionAmount = price * share * rate
+      payload[`${basePath}/assignedStylists/${assignedId}/commissionRate`] = rate
+      payload[`${basePath}/assignedStylists/${assignedId}/commissionAmount`] = commissionAmount
+      totalServiceCommission += commissionAmount
+      hasAny = true
+    }
+
+    return hasAny ? totalServiceCommission : null
+  }
+
+  if (Array.isArray(services)) {
+    const idx = Number(serviceIndex)
+    if (Number.isInteger(idx) && idx >= 0 && services[idx]) {
+      const s = services[idx]
+      const price = toNumber(s?.price ?? s?.amount ?? s?.total ?? s?.servicePrice)
+      const totalServiceCommission = applyAssignedStylistRates(`services/${idx}`, s, price)
+      if (totalServiceCommission != null) {
+        payload[`services/${idx}/totalServiceCommission`] = totalServiceCommission
+      } else {
+        // Backward-compatible fallback when assignedStylists is missing.
+        payload[`services/${idx}/commissionRate`] = rate
+        payload[`services/${idx}/commissionAmount`] = amountFromPrice(price)
+      }
+    }
+  } else if (services && typeof services === 'object') {
+    const key = serviceKey != null ? String(serviceKey) : null
+    if (key && Object.prototype.hasOwnProperty.call(services, key)) {
+      const s = services[key]
+      const price = toNumber(s?.price ?? s?.amount ?? s?.total ?? s?.servicePrice)
+      const totalServiceCommission = applyAssignedStylistRates(`services/${key}`, s, price)
+      if (totalServiceCommission != null) {
+        payload[`services/${key}/totalServiceCommission`] = totalServiceCommission
+      } else {
+        payload[`services/${key}/commissionRate`] = rate
+        payload[`services/${key}/commissionAmount`] = amountFromPrice(price)
+      }
+    } else {
+      const idx = Number(serviceIndex)
+      const keys = Object.keys(services)
+      if (Number.isInteger(idx) && idx >= 0 && keys[idx]) {
+        const keyByIndex = keys[idx]
+        const s = services[keyByIndex]
+        const price = toNumber(s?.price ?? s?.amount ?? s?.total ?? s?.servicePrice)
+        const totalServiceCommission = applyAssignedStylistRates(`services/${keyByIndex}`, s, price)
+        if (totalServiceCommission != null) {
+          payload[`services/${keyByIndex}/totalServiceCommission`] = totalServiceCommission
+        } else {
+          payload[`services/${keyByIndex}/commissionRate`] = rate
+          payload[`services/${keyByIndex}/commissionAmount`] = amountFromPrice(price)
+        }
+      }
     }
   }
 
-  const totalPrice = Number(resolved.data?.price || resolved.data?.totalAmount || 0)
-  payload.commissionAmount = amountFromPrice(totalPrice)
+  // Keep root totals in sync while preserving the strict per-service source of truth.
+  let totalAmount = 0
+  let totalCommission = 0
+  const foldService = (service, shouldApplyUpdatedRate) => {
+    if (!service || typeof service !== 'object') return
+    const price = toNumber(service.price ?? service.amount ?? service.total ?? service.servicePrice)
+    const assigned = service.assignedStylists
+    const hasAssigned = assigned && typeof assigned === 'object'
+    let serviceAmount = 0
 
-  const targetRef = ref(db, resolved.refPath)
-  await update(targetRef, payload)
+    if (hasAssigned) {
+      const entries = Array.isArray(assigned) ? assigned : Object.values(assigned)
+      for (const row of entries) {
+        if (!row || typeof row !== 'object') continue
+        const share = toNumber(row.share)
+        const rowRate = shouldApplyUpdatedRate ? rate : toNumber(row.commissionRate)
+        const rowAmount =
+          shouldApplyUpdatedRate || row.commissionAmount == null
+            ? price * share * rowRate
+            : toNumber(row.commissionAmount)
+        serviceAmount += rowAmount
+      }
+    } else {
+      const serviceRate = shouldApplyUpdatedRate ? rate : toNumber(service.commissionRate)
+      serviceAmount =
+        shouldApplyUpdatedRate || service.commissionAmount == null
+          ? price * serviceRate
+          : toNumber(service.commissionAmount)
+    }
+
+    totalAmount += price
+    totalCommission += serviceAmount
+  }
+
+  if (Array.isArray(services)) {
+    const targetIdx = Number(serviceIndex)
+    services.forEach((service, idx) => {
+      foldService(service, Number.isInteger(targetIdx) && idx === targetIdx)
+    })
+  } else if (services && typeof services === 'object') {
+    const targetKey = serviceKey != null ? String(serviceKey) : null
+    const targetIdx = Number(serviceIndex)
+    Object.entries(services).forEach(([key, service], idx) => {
+      const shouldApply =
+        (targetKey && key === targetKey) ||
+        (!targetKey && Number.isInteger(targetIdx) && idx === targetIdx)
+      foldService(service, shouldApply)
+    })
+  } else {
+    totalAmount = toNumber(data.totalAmount ?? data.price)
+    totalCommission = toNumber(data.totalCommission ?? data.commissionAmount)
+  }
+
+  payload.totalAmount = totalAmount
+  payload.totalCommission = totalCommission
+
+  await update(rootRef, payload)
 }
 
 function getLoginHistoryPaths(uid, branchId) {

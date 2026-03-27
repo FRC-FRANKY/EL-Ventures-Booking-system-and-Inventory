@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { auth } from '../firebase'
 import {
   extractStylistsFromAppointment,
   listenToAppointments,
@@ -41,17 +42,32 @@ function toDisplayList(value) {
 }
 
 function toServiceRows(services) {
+  const readAssignedSummary = (assignedStylists) => {
+    if (!assignedStylists || typeof assignedStylists !== 'object') return { rate: null, amount: null }
+    const rows = Array.isArray(assignedStylists)
+      ? assignedStylists.filter((x) => x && typeof x === 'object')
+      : Object.values(assignedStylists).filter((x) => x && typeof x === 'object')
+    if (!rows.length) return { rate: null, amount: null }
+    const firstRate = extractNumber(rows[0]?.commissionRate)
+    const totalAmount = rows.reduce((sum, row) => sum + (extractNumber(row?.commissionAmount) ?? 0), 0)
+    return { rate: firstRate, amount: totalAmount }
+  }
+
   if (!services) return []
   if (Array.isArray(services)) {
     return services.map((s, i) => {
       if (typeof s === 'string') return { name: s, price: 0, index: i }
       if (s && typeof s === 'object') {
         const rawPrice = s.price ?? s.amount ?? s.total ?? s.servicePrice
+        const assigned = readAssignedSummary(s.assignedStylists)
         return {
           name: s.name || s.serviceName || `Service ${i + 1}`,
           price: extractNumber(rawPrice) ?? 0,
-          commissionRate: extractNumber(s.commissionRate),
-          commissionAmount: extractNumber(s.commissionAmount),
+          commissionRate: extractNumber(s.commissionRate) ?? assigned.rate,
+          commissionAmount:
+            extractNumber(s.totalServiceCommission) ??
+            extractNumber(s.commissionAmount) ??
+            assigned.amount,
           index: i,
         }
       }
@@ -63,11 +79,15 @@ function toServiceRows(services) {
       if (typeof s === 'string') return { name: s, price: 0, key: k, index: i }
       if (s && typeof s === 'object') {
         const rawPrice = s.price ?? s.amount ?? s.total ?? s.servicePrice
+        const assigned = readAssignedSummary(s.assignedStylists)
         return {
           name: s.name || s.serviceName || `Service ${i + 1}`,
           price: extractNumber(rawPrice) ?? 0,
-          commissionRate: extractNumber(s.commissionRate),
-          commissionAmount: extractNumber(s.commissionAmount),
+          commissionRate: extractNumber(s.commissionRate) ?? assigned.rate,
+          commissionAmount:
+            extractNumber(s.totalServiceCommission) ??
+            extractNumber(s.commissionAmount) ??
+            assigned.amount,
           key: k,
           index: i,
         }
@@ -115,6 +135,13 @@ function parseStylists(stylists) {
     .filter(Boolean)
 }
 
+function normalizeRate(value) {
+  const raw = extractNumber(value) ?? 0
+  if (raw <= 0) return 0
+  // Rules expect decimal rate (0..1). Accept legacy percent values too.
+  return raw > 1 ? raw / 100 : raw
+}
+
 function resolveStylistForService(stylistRows, serviceRow, fallbackName) {
   if (!Array.isArray(stylistRows) || stylistRows.length === 0) {
     return cleanStylistName(fallbackName) || 'Unknown Stylist'
@@ -155,6 +182,7 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
     const branchNamesKey = Array.isArray(branchNames) ? branchNames.join('|') : ''
     const byBranch = new Map()
     const branchStatus = new Map()
+    let fallbackUnsub = null
 
     const parseAndSet = (data) => {
       const rows = []
@@ -169,14 +197,14 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
         const dateKey = getDateKey(apt.preferredDate, apt.createdAt)
         const serviceRows = toServiceRows(apt.services)
         const baseSalary = extractNumber(apt.baseSalary ?? apt.base ?? 0) ?? 0
-        const defaultRate = extractNumber(apt.commissionRate) ?? 0
+        const defaultRate = normalizeRate(apt.commissionRate)
         const appointmentTotal = extractNumber(apt.price || apt.totalAmount) ?? 0
 
         if (serviceRows.length === 0) {
           const rate = defaultRate
           const amount = Number(
             apt.commissionAmount ??
-              (appointmentTotal > 0 ? (appointmentTotal * rate) / 100 : 0)
+              (appointmentTotal > 0 ? appointmentTotal * rate : 0)
           )
           rows.push({
             id: `${apt.id}-0`,
@@ -201,9 +229,9 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
         for (const serviceRow of serviceRows) {
           const mappedStylistName = resolveStylistForService(stylistRows, serviceRow, stylistName)
           const price = Number(serviceRow.price || appointmentTotal || 0)
-          const rate = Number(serviceRow.commissionRate ?? defaultRate)
+          const rate = normalizeRate(serviceRow.commissionRate ?? defaultRate)
           const amount = Number(
-            serviceRow.commissionAmount ?? (price > 0 ? (price * rate) / 100 : 0)
+            serviceRow.commissionAmount ?? (price > 0 ? price * rate : 0)
           )
           rows.push({
             id: `${apt.id}-${serviceRow.key ?? serviceRow.index}`,
@@ -238,6 +266,16 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
     }
 
     const onError = (err) => {
+      if (String(err?.code || '') === 'PERMISSION_DENIED') {
+        setTransactions([])
+        if (!auth.currentUser) {
+          setError('You are not signed in to Firebase. Please login again.')
+        } else {
+          setError('You do not have permission to read appointments for this branch.')
+        }
+        setLoading(false)
+        return
+      }
       setError(err?.message || 'Failed to fetch booking data.')
       setLoading(false)
     }
@@ -254,10 +292,27 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
         (data) => {
           byBranch.set(branchName, data || [])
           branchStatus.set(branchName, 'ok')
+          setError('')
           recompute()
         },
         (err) => {
-          // Single-branch mode should surface the error.
+          if (err?.code === 'PERMISSION_DENIED' && !fallbackUnsub) {
+            // Fallback path: read root appointments and filter by exact branchName locally.
+            fallbackUnsub = listenToAppointments(
+              (all) => {
+                const filtered = (all || []).filter(
+                  (row) => String(row?.branchName || '').trim() === String(branchName || '').trim()
+                )
+                byBranch.set(branchName, filtered)
+                branchStatus.set(branchName, 'ok')
+                setError('')
+                recompute()
+              },
+              onError
+            )
+            return
+          }
+          // Single-branch mode should surface non-fallback errors.
           onError(err)
         }
       )
@@ -305,6 +360,7 @@ export function useCommissionTransactions({ branchName, branchNames } = {}) {
       unsubs.forEach((u) => {
         if (typeof u === 'function') u()
       })
+      if (typeof fallbackUnsub === 'function') fallbackUnsub()
     }
   }, [branchName, Array.isArray(branchNames) ? branchNames.join('|') : ''])
 

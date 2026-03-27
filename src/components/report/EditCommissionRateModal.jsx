@@ -3,22 +3,32 @@ import { X, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function EditCommissionRateModal({ entry, onClose, onSave }) {
-  const [rate, setRate] = useState(entry?.rate ?? 0)
+  const toPercent = (value) => {
+    const n = Number(value) || 0
+    return n > 1 ? n : n * 100
+  }
+  const toDecimal = (value) => {
+    const n = Number(value) || 0
+    return n > 1 ? n / 100 : n
+  }
+
+  const [rate, setRate] = useState(toPercent(entry?.rate ?? 0))
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (entry) setRate(entry.rate)
+    if (entry) setRate(toPercent(entry.rate))
   }, [entry])
 
   if (!entry) return null
 
-  const newAmount = (entry.price * rate) / 100
+  const normalizedRate = toDecimal(rate)
+  const newAmount = entry.price * normalizedRate
 
   const handleSave = () => {
     const run = async () => {
       setSaving(true)
       try {
-        await Promise.resolve(onSave({ ...entry, rate, amount: newAmount }))
+        await Promise.resolve(onSave({ ...entry, rate: normalizedRate, amount: newAmount }))
         onClose()
       } finally {
         setSaving(false)

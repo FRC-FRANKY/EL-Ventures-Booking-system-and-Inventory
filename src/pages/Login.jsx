@@ -157,6 +157,7 @@ export default function Login() {
       if (isHrManager) {
         const demo = DEMO_CREDENTIALS['hr-manager']
         if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
+          await signInWithEmailAndPassword(auth, demo.username, demo.password)
           navigateWithSuccess('/hr-manager/dashboard', {
             fullName: 'HR Recel Orcales',
           })
@@ -169,6 +170,7 @@ export default function Login() {
       if (isAccounting) {
         const demo = DEMO_CREDENTIALS['accounting-inventory']
         if (trimmedUsername === demo.username && trimmedPassword === demo.password) {
+          await signInWithEmailAndPassword(auth, demo.username, demo.password)
           navigateWithSuccess('/accounting-inventory/dashboard', {
             username: trimmedUsername,
           })
@@ -178,11 +180,13 @@ export default function Login() {
         return
       }
     } catch {
-      triggerError(
-        isReceptionist
-          ? 'Invalid email or password. Please try again.'
-          : 'Unable to sign in right now. Please try again.'
-      )
+      if (isReceptionist) {
+        triggerError('Invalid email or password. Please try again.')
+      } else {
+        triggerError(
+          'Login matched locally, but Firebase auth failed. Please create/sign in this role in Firebase Authentication.'
+        )
+      }
     } finally {
       setLoading(false)
     }

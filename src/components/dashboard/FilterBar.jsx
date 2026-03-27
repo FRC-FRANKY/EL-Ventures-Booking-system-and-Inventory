@@ -41,10 +41,9 @@ export default function FilterBar({
               className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2.5 pr-9 text-sm text-slate-900 outline-none transition focus:border-fuchsia-400 focus:ring-2 focus:ring-fuchsia-300/50"
             >
               <option>All Statuses</option>
-              <option>Confirmed</option>
               <option>Pending</option>
+              <option>Ongoing</option>
               <option>Completed</option>
-              <option>Cancelled</option>
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
           </div>

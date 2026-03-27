@@ -49,7 +49,7 @@ export default function CommissionReport({ data, onEditRate }) {
                         <td className="py-3 px-4">
                           {entry.rate > 0 ? (
                             <span className="inline-flex px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                              {entry.rate.toFixed(2)}%
+                              {(entry.rate * 100).toFixed(2)}%
                             </span>
                           ) : (
                             <span className="inline-flex px-2.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800">

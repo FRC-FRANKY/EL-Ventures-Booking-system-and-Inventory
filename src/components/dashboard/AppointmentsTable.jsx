@@ -157,13 +157,13 @@ function getDefaultNote(appointment) {
   if (appointment.status === 'Completed') {
     return 'Stylist was available and the service has been completed.'
   }
-  if (appointment.status === 'Confirmed') {
+  if (appointment.status === 'Ongoing') {
     return 'Stylist is scheduled and currently marked as available for this time.'
   }
   return 'Stylist availability for this time slot is not confirmed. Please verify before confirming.'
 }
 
-const STATUS_OPTIONS = ['Confirmed', 'Pending', 'Completed', 'Cancelled']
+const STATUS_OPTIONS = ['Pending', 'Ongoing', 'Completed']
 
 function getServicesArray(serviceText) {
   if (!serviceText || serviceText === 'N/A') return []
@@ -202,13 +202,28 @@ function flattenServiceItems(value) {
   return []
 }
 
-function buildServicesPayload(selectedNames, catalog) {
+function buildServicesPayload(selectedNames, catalog, stylistRows = []) {
   const byName = new Map(catalog.map((item) => [item.name.toLowerCase(), item]))
+  const assignedStylists = {}
+  const validStylists = Array.isArray(stylistRows) ? stylistRows.filter((s) => s?.name) : []
+  const share = validStylists.length > 0 ? 1 / validStylists.length : 1
+  validStylists.forEach((stylist, idx) => {
+    assignedStylists[idx] = {
+      name: String(stylist.name),
+      share,
+      commissionRate: 0,
+      commissionAmount: 0,
+    }
+  })
   return selectedNames.map((name) => {
     const match = byName.get(name.toLowerCase())
+    const price = match?.price != null ? Number(match.price) : 0
     return {
       name,
-      ...(match?.price != null ? { price: match.price } : {}),
+      type: 'service',
+      price,
+      assignedStylists,
+      totalServiceCommission: 0,
     }
   })
 }
@@ -314,8 +329,10 @@ export default function AppointmentsTable({
           stylist: stylistName,
           dateTime: formatDateTime(apt.preferredDate, apt.preferredTime),
           price:
-            apt.price != null
-              ? `PHP ${Number(apt.price).toFixed(2)}`
+            apt.totalAmount != null
+              ? `PHP ${Number(apt.totalAmount).toFixed(2)}`
+              : apt.price != null
+                ? `PHP ${Number(apt.price).toFixed(2)}`
               : (() => {
                   const total = computeServicesTotalPrice(apt.services)
                   return total != null ? `PHP ${total.toFixed(2)}` : '—'
@@ -582,7 +599,8 @@ export default function AppointmentsTable({
                   const previous = selectedAppointment
                   const servicesPayload = buildServicesPayload(
                     draftServices,
-                    availableServices
+                    availableServices,
+                    extractStylistsFromAppointment(selectedAppointment.rawStylists)
                   )
                   const totalPrice = sumServicesPrice(servicesPayload)
                   const previousPrice = extractNumber(previous.price)
@@ -594,7 +612,8 @@ export default function AppointmentsTable({
                         : null
                   const payload = {
                     services: servicesPayload,
-                    ...(finalPrice != null ? { price: finalPrice } : {}),
+                    totalAmount: finalPrice ?? 0,
+                    totalCommission: 0,
                   }
 
                   const nextServiceText = draftServices.join(', ')
