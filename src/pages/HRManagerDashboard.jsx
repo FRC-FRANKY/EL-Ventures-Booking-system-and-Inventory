@@ -8,11 +8,24 @@ import EmployeeTablePanel from '../components/dashboard-ui/EmployeeTablePanel'
 import { TrendLineChart, SalesBarChart, CategoryPieChart } from '../components/dashboard-ui/charts/DashboardCharts'
 import ActivityList from '../components/ActivityList'
 import QuickActions from '../components/QuickActions'
+import { useHrDashboardData } from '../hooks/useHrDashboardData'
 
 export default function HRManagerDashboard() {
   const navigate = useNavigate()
   const location = useLocation()
   const displayName = location.state?.fullName || 'HR Recel Orcales'
+
+  const {
+    employees,
+    totalEmployees,
+    attendanceRate,
+    leaveRequests,
+    openPositions,
+    lineData,
+    barData,
+    pieData,
+    activities,
+  } = useHrDashboardData()
 
   return (
     <ManagementShell
@@ -29,8 +42,8 @@ export default function HRManagerDashboard() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiStatCard
           title="Total employees"
-          value="18"
-          trend="+2 vs last month"
+          value={String(totalEmployees)}
+          trend="Live from branch stylists"
           trendTone="positive"
           subtitle="Active headcount"
           icon={Users}
@@ -38,26 +51,26 @@ export default function HRManagerDashboard() {
         />
         <KpiStatCard
           title="Attendance rate"
-          value="96.4%"
-          trend="+1.2% vs last week"
+          value={`${attendanceRate.toFixed(1)}%`}
+          trend="Completed vs total (7 days)"
           trendTone="positive"
-          subtitle="Branch average"
+          subtitle="All branches"
           icon={ClipboardList}
           delay={0.1}
         />
         <KpiStatCard
-          title="Leave requests"
-          value="5"
-          trend="2 pending approval"
+          title="Pending this week"
+          value={String(leaveRequests)}
+          trend="Bookings awaiting action"
           trendTone="neutral"
-          subtitle="This week"
+          subtitle="Confirmation queue"
           icon={CalendarOff}
           delay={0.15}
         />
         <KpiStatCard
           title="Open positions"
-          value="2"
-          trend="Salon · Nail"
+          value={String(openPositions)}
+          trend="Estimated staffing gap"
           trendTone="neutral"
           subtitle="Recruitment"
           icon={UserPlus}
@@ -66,17 +79,17 @@ export default function HRManagerDashboard() {
       </section>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <PanelCard title="Attendance trend" description="Rolling 7-day check-ins" className="lg:col-span-2">
-          <TrendLineChart title="" />
+        <PanelCard title="Appointment trend" description="Rolling 7-day volume" className="lg:col-span-2">
+          <TrendLineChart title="" data={lineData} />
         </PanelCard>
-        <PanelCard title="Department load" description="Headcount by area">
-          <SalesBarChart title="" />
+        <PanelCard title="Department load" description="Stylists by area">
+          <SalesBarChart title="" data={barData} barMetricLabel="Staff" />
         </PanelCard>
       </section>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <PanelCard title="Leave mix" description="Types of time-off">
-          <CategoryPieChart title="" />
+        <PanelCard title="Status mix" description="Appointments (30 days)">
+          <CategoryPieChart title="" data={pieData} />
         </PanelCard>
         <PanelCard
           title="Daily report"
@@ -106,12 +119,12 @@ export default function HRManagerDashboard() {
         </PanelCard>
       </section>
 
-      <PanelCard title="Employee directory" description="Snapshot of key staff">
-        <EmployeeTablePanel />
+      <PanelCard title="Employee directory" description="Staff from branch stylist records">
+        <EmployeeTablePanel employees={employees} />
       </PanelCard>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ActivityList />
+        <ActivityList items={activities} />
         <QuickActions />
       </div>
     </ManagementShell>

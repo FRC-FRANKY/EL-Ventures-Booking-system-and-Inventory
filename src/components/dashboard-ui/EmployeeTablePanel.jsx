@@ -1,11 +1,18 @@
-const rows = [
-  { name: 'Recel Orcales', role: 'HR Manager', dept: 'HQ', status: 'Active', attendance: '98%' },
-  { name: 'Maria Santos', role: 'Stylist', dept: 'Salon', status: 'Active', attendance: '96%' },
-  { name: 'James Taylor', role: 'Stylist', dept: 'Salon', status: 'On leave', attendance: '—' },
-  { name: 'Ana Reyes', role: 'Nail Tech', dept: 'Nail', status: 'Active', attendance: '99%' },
+const fallback = [
+  { name: 'Recel Orcales', role: 'HR Manager', dept: 'HQ', status: 'Active', attendance: '—' },
+  { name: 'Maria Santos', role: 'Stylist', dept: 'Salon', status: 'Active', attendance: '—' },
 ]
 
-export default function EmployeeTablePanel() {
+export default function EmployeeTablePanel({ employees }) {
+  if (Array.isArray(employees) && employees.length === 0) {
+    return (
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        No stylists loaded yet. When your team is added under each branch&apos;s stylist list in Firebase, they will appear here.
+      </p>
+    )
+  }
+  const rows = Array.isArray(employees) && employees.length ? employees : fallback
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[520px] text-left text-sm">
@@ -20,7 +27,10 @@ export default function EmployeeTablePanel() {
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {rows.map((r) => (
-            <tr key={r.name} className="text-slate-700 transition hover:bg-slate-50/80 dark:text-slate-200 dark:hover:bg-slate-800/50">
+            <tr
+              key={`${r.name}-${r.dept || ''}`}
+              className="text-slate-700 transition hover:bg-slate-50/80 dark:text-slate-200 dark:hover:bg-slate-800/50"
+            >
               <td className="py-3 pr-4 font-medium text-slate-900 dark:text-white">{r.name}</td>
               <td className="py-3 pr-4">{r.role}</td>
               <td className="py-3 pr-4">{r.dept}</td>
@@ -36,7 +46,7 @@ export default function EmployeeTablePanel() {
                   {r.status}
                 </span>
               </td>
-              <td className="py-3 font-medium text-slate-900 dark:text-white">{r.attendance}</td>
+              <td className="py-3 font-medium text-slate-900 dark:text-white">{r.attendance || '—'}</td>
             </tr>
           ))}
         </tbody>

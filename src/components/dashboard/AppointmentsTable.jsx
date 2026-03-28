@@ -202,13 +202,81 @@ function flattenServiceItems(value) {
   return []
 }
 
-function buildServicesPayload(selectedNames, catalog, stylistRows = []) {
+function serviceNameKey(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function findExistingServiceByName(raw, serviceName) {
+  const target = serviceNameKey(serviceName)
+  for (const item of flattenServiceItems(raw)) {
+    if (!item || typeof item !== 'object') continue
+    const n = item.name || item.serviceName || item.title
+    if (n && serviceNameKey(n) === target) return item
+  }
+  return null
+}
+
+function sumAssignedCommissionAmounts(assigned) {
+  if (!assigned || typeof assigned !== 'object') return 0
+  const rows = Array.isArray(assigned) ? assigned : Object.values(assigned)
+  return rows.reduce((s, row) => s + (extractNumber(row?.commissionAmount) ?? 0), 0)
+}
+
+function normalizeCommissionRate(value) {
+  const raw = extractNumber(value) ?? 0
+  if (raw <= 0) return 0
+  return raw > 1 ? raw / 100 : raw
+}
+
+/**
+ * When saving appointment details, preserve commission fields from Firebase so
+ * marking "Completed" does not wipe rates set from the HR commission report.
+ */
+function mergeServiceCommissionFromExisting(base, existing) {
+  if (!existing || typeof existing !== 'object') return base
+  const merged = { ...base }
+  if (existing.assignedStylists != null) {
+    merged.assignedStylists = JSON.parse(JSON.stringify(existing.assignedStylists))
+  }
+  if (existing.commissionRate != null) merged.commissionRate = existing.commissionRate
+  if (existing.commissionAmount != null) merged.commissionAmount = existing.commissionAmount
+  if (existing.totalServiceCommission != null) merged.totalServiceCommission = existing.totalServiceCommission
+  else if (merged.assignedStylists) {
+    const sum = sumAssignedCommissionAmounts(merged.assignedStylists)
+    if (sum > 0) merged.totalServiceCommission = sum
+  }
+  return merged
+}
+
+function commissionAmountForServicePayload(srv) {
+  const total = extractNumber(srv.totalServiceCommission)
+  if (total != null && total > 0) return total
+  const fromAssigned = sumAssignedCommissionAmounts(srv.assignedStylists)
+  if (fromAssigned > 0) return fromAssigned
+  const direct = extractNumber(srv.commissionAmount)
+  if (direct != null && direct > 0) return direct
+  const price = extractNumber(srv.price)
+  const rate = extractNumber(srv.commissionRate)
+  if (price != null && price > 0 && rate != null && rate > 0) {
+    return price * normalizeCommissionRate(srv.commissionRate)
+  }
+  return 0
+}
+
+function computeAppointmentTotalCommission(servicesPayload) {
+  return servicesPayload.reduce((sum, srv) => sum + commissionAmountForServicePayload(srv), 0)
+}
+
+function buildServicesPayload(selectedNames, catalog, stylistRows = [], existingRawServices = null) {
   const byName = new Map(catalog.map((item) => [item.name.toLowerCase(), item]))
-  const assignedStylists = {}
+  const assignedStylistsTemplate = {}
   const validStylists = Array.isArray(stylistRows) ? stylistRows.filter((s) => s?.name) : []
   const share = validStylists.length > 0 ? 1 / validStylists.length : 1
   validStylists.forEach((stylist, idx) => {
-    assignedStylists[idx] = {
+    assignedStylistsTemplate[idx] = {
       name: String(stylist.name),
       share,
       commissionRate: 0,
@@ -218,13 +286,15 @@ function buildServicesPayload(selectedNames, catalog, stylistRows = []) {
   return selectedNames.map((name) => {
     const match = byName.get(name.toLowerCase())
     const price = match?.price != null ? Number(match.price) : 0
-    return {
+    const base = {
       name,
       type: 'service',
       price,
-      assignedStylists,
+      assignedStylists: JSON.parse(JSON.stringify(assignedStylistsTemplate)),
       totalServiceCommission: 0,
     }
+    const existing = findExistingServiceByName(existingRawServices, name)
+    return mergeServiceCommissionFromExisting(base, existing)
   })
 }
 
@@ -600,7 +670,8 @@ export default function AppointmentsTable({
                   const servicesPayload = buildServicesPayload(
                     draftServices,
                     availableServices,
-                    extractStylistsFromAppointment(selectedAppointment.rawStylists)
+                    extractStylistsFromAppointment(selectedAppointment.rawStylists),
+                    selectedAppointment.rawServices
                   )
                   const totalPrice = sumServicesPrice(servicesPayload)
                   const previousPrice = extractNumber(previous.price)
@@ -610,10 +681,11 @@ export default function AppointmentsTable({
                       : previousPrice != null && previousPrice > 0
                         ? previousPrice
                         : null
+                  const totalCommission = computeAppointmentTotalCommission(servicesPayload)
                   const payload = {
                     services: servicesPayload,
                     totalAmount: finalPrice ?? 0,
-                    totalCommission: 0,
+                    totalCommission,
                   }
 
                   const nextServiceText = draftServices.join(', ')

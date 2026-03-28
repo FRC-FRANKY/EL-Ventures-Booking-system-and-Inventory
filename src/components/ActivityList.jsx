@@ -1,15 +1,17 @@
-const activities = [
-  { id: 1, time: '2 min ago', text: 'New appointment booked - Sarah Johnson' },
-  { id: 2, time: '15 min ago', text: 'Sale completed - PHP 3,450.00' },
-  { id: 3, time: '32 min ago', text: 'Expense added - Utilities' },
-  { id: 4, time: '1 hour ago', text: 'New customer registered - Mike Chen' },
-  { id: 5, time: '2 hours ago', text: 'Inventory updated - Hair Products' },
+const fallback = [
+  { id: 1, time: '—', text: 'Connect Firebase to see live booking activity.' },
 ]
 
-export default function ActivityList() {
+export default function ActivityList({ items }) {
+  const activities = Array.isArray(items) && items.length ? items : fallback
+  const empty = Array.isArray(items) && items.length === 0
+
   return (
     <div className="h-full rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
       <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-white">Recent activity</h3>
+      {empty ? (
+        <p className="text-sm text-slate-500 dark:text-slate-400">No recent appointments in the system yet.</p>
+      ) : (
       <ul className="space-y-1">
         {activities.map((item) => (
           <li
@@ -23,6 +25,7 @@ export default function ActivityList() {
           </li>
         ))}
       </ul>
+      )}
     </div>
   )
 }

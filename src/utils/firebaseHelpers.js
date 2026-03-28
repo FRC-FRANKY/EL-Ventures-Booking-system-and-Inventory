@@ -22,7 +22,7 @@ function logFirebaseError(prefix, error) {
   console.error(prefix, error?.message || error)
 }
 
-const KNOWN_BRANCHES = ['Mandaue City Branch', 'Pajac Branch', 'Pusok Branch', 'Cebu City Branch']
+export const KNOWN_BRANCHES = ['Mandaue City Branch', 'Pajac Branch', 'Pusok Branch', 'Cebu City Branch']
 
 function normalizeStylistsNode(stylistsNode, branch) {
   if (!stylistsNode) return []
@@ -182,6 +182,138 @@ export async function fetchBranchCustomersOnce(branchId) {
     return Object.entries(data).map(([id, val]) => ({ id, ...val }))
   }
   return []
+}
+
+export function listenToBranchStylists(branchName, callback, onError) {
+  const value = String(branchName || '').trim()
+  if (!value) {
+    callback([])
+    return () => {}
+  }
+  const stylistsRef = ref(db, `branches/${value}/stylists`)
+  return onValue(
+    stylistsRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback([])
+        return
+      }
+      const rows = normalizeStylistsNode(snapshot.val(), value)
+      callback(rows)
+    },
+    (error) => {
+      logFirebaseError('Firebase stylists read error:', error)
+      if (onError) onError(error)
+    }
+  )
+}
+
+/** Normalized key for matching stylist names between appointments and payroll records. */
+export function normalizeStylistPayrollKey(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Map of normalizeStylistPayrollKey(name) -> { displayName, baseSalaryPerCutoff } from Firebase stylists node.
+ * Reads baseSalaryPerCutoff, semiMonthlySalary, monthlySalary, baseSalary, etc.
+ */
+export function listenToBranchStylistPayrollMap(branchName, callback, onError) {
+  const value = String(branchName || '').trim()
+  if (!value) {
+    callback(new Map())
+    return () => {}
+  }
+  const stylistsRef = ref(db, `branches/${value}/stylists`)
+  return onValue(
+    stylistsRef,
+    (snapshot) => {
+      const map = new Map()
+      if (!snapshot.exists()) {
+        callback(map)
+        return
+      }
+      const raw = snapshot.val()
+      const entries = Array.isArray(raw)
+        ? raw.map((row, index) => [String(index), row])
+        : Object.entries(raw)
+      for (const [, row] of entries) {
+        if (!row || typeof row !== 'object') continue
+        const name = row.name || row.fullName || row.stylistName
+        if (!name) continue
+        const key = normalizeStylistPayrollKey(name)
+        const explicit = Number(
+          row.baseSalaryPerCutoff ?? row.basePerCutoff ?? row.semiMonthlySalary ?? row.semi_monthly ?? 0
+        )
+        const monthly = Number(row.monthlySalary ?? row.monthly ?? row.salary ?? 0)
+        const base = Number(row.baseSalary ?? row.basePay ?? row.base ?? 0)
+        const perCutoff =
+          explicit > 0 ? explicit : monthly > 0 ? monthly / 2 : base > 0 ? base : 0
+        map.set(key, {
+          displayName: String(name).trim(),
+          baseSalaryPerCutoff: perCutoff,
+        })
+      }
+      callback(map)
+    },
+    (error) => {
+      logFirebaseError('Firebase stylist payroll read error:', error)
+      if (onError) onError(error)
+    }
+  )
+}
+
+export function listenToBranchVisitorLog(branchId, callback, onError) {
+  const value = String(branchId || '').trim()
+  if (!value) {
+    callback([])
+    return () => {}
+  }
+  const visitorRef = ref(db, `branches/${value}/visitorLog`)
+  return onValue(
+    visitorRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback([])
+        return
+      }
+      const data = snapshot.val()
+      const list = Object.entries(data).map(([id, val]) => ({ id, ...val }))
+      callback(list)
+    },
+    (error) => {
+      logFirebaseError('Firebase visitor log read error:', error)
+      if (onError) onError(error)
+    }
+  )
+}
+
+export async function pushVisitorLogEntry(branchId, { name, purpose }) {
+  const value = String(branchId || '').trim()
+  if (!value) throw new Error('Branch is required')
+  const visitorRef = ref(db, `branches/${value}/visitorLog`)
+  const newRef = push(visitorRef)
+  const checkedInAt = Date.now()
+  await set(newRef, {
+    name: String(name || '').trim() || 'Guest',
+    purpose: String(purpose || 'Visit').trim() || 'Visit',
+    checkedInAt,
+    status: 'In',
+  })
+  return newRef.key
+}
+
+export async function checkoutVisitorEntry(branchId, entryId) {
+  const value = String(branchId || '').trim()
+  if (!value) throw new Error('Branch is required')
+  if (!entryId) throw new Error('Entry id is required')
+  const entryRef = ref(db, `branches/${value}/visitorLog/${entryId}`)
+  await update(entryRef, {
+    status: 'Out',
+    checkedOutAt: Date.now(),
+  })
 }
 
 export async function fetchStylists(branchName) {

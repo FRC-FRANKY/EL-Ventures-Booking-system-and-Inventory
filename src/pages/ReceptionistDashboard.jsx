@@ -53,18 +53,22 @@ export default function ReceptionistDashboard() {
         icon={Calendar}
       />
 
-      <ReceptionistKpiRow />
+      <ReceptionistKpiRow branch={branch} />
 
       <ReceptionistQuickActionsBar fullName={fullName} branch={branch} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PanelCard title="Visitor log" description="Fast check-in for walk-ins and guests">
-          <VisitorLogPanel />
+        <PanelCard
+          id="visitor-log-panel"
+          title="Visitor log"
+          description="Fast check-in for walk-ins and guests"
+        >
+          <VisitorLogPanel branch={branch} />
         </PanelCard>
-        <AppointmentsList />
+        <AppointmentsList branch={branch} />
       </div>
 
-      <RecentCustomers />
+      <RecentCustomers branch={branch} />
 
       {showLoginHistory && (
         <LoginHistoryModal onClose={() => setShowLoginHistory(false)} />

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { CalendarPlus, UserPlus } from 'lucide-react'
 
-export default function ReceptionistQuickActionsBar({ fullName, branch }) {
+export default function ReceptionistQuickActionsBar({ fullName, branch, onLogVisitor }) {
   const navigate = useNavigate()
   const state = fullName ? { fullName, branch } : undefined
 
@@ -17,6 +17,10 @@ export default function ReceptionistQuickActionsBar({ fullName, branch }) {
       </button>
       <button
         type="button"
+        onClick={() => {
+          if (typeof onLogVisitor === 'function') onLogVisitor()
+          else document.getElementById('visitor-log-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }}
         className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C2185B] focus:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900"
       >
         <UserPlus className="h-4 w-4" />

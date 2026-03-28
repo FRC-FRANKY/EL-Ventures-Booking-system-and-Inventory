@@ -19,3 +19,9 @@ body {
 #root {
   min-height: 100vh;
 }
+
+@media print {
+  .payroll-no-print {
+    display: none !important;
+  }
+}
